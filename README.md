@@ -9,6 +9,7 @@
 - define feature set and order them according to priority (Joseph)
 - basic tabs and buttons and hotkey bindings (clay)
 - script folder directory and configuration file (clay)
+- seperate repo for finale stuff
 
 ## Unordered
 
