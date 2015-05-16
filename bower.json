@@ -1,0 +1,20 @@
+{
+  "name": "hotkey-grid",
+  "version": "0.0.0",
+  "homepage": "https://github.com/jsphweid/hotkey-grid",
+  "authors": [
+    "jsphweid <jsphweid@gmail.com>"
+  ],
+  "main": "main.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.4"
+  }
+}
