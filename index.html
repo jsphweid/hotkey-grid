@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hotkey Grid</title>
+     <script src="./bower_components/jquery/dist/jquery.js"></script>
+     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  </head>
+  <body>
+    <h1>Hotkey Grid</h1>
+
+    <h2>Next Action</h2>
+
+    <button accesskey='n' id='newtab'>New Tab</button>
+    Buttons -> execute apple script
+
+    <h2>ASAP</h2>
+
+    <h2>Someday/Maybe</h2>
+
+    <ul>
+    <li>Tabs</li>
+    <li>movable buttons</li>
+    <li>movable tabs</li>
+    <li>dynamically add buttons to automate random menu navigation</li>
+    <li></li>
+    </ul>
+
+    We are using io.js <script>document.write(process.version)</script>
+    and Electron <script>document.write(process.versions['electron'])</script>.
+<script>
+var sys = require('sys')
+var exec = require('child_process').exec;
+function puts(error, stdout, stderr) { sys.puts(stdout) }
+var ipc = require('ipc');
+var fs = require('fs');
+$('#newtab').on('click', function() {
+	var str = 'tell application "System Events"\n' +
+	'  click menu item "New Tab" of menu "File" of menu bar item "File" of menu bar 1 of application process "Chrome"\n' +
+	'end tell\n';
+	fs.writeFile("./newtab.ascript", str, function(err) {
+	    if(err) {
+    	    return console.log(err);
+    	} else {
+	    	console.log("The file was saved!");
+    		exec('osascript newtab.ascript', puts);
+   		}
+	}); 
+});
+      // var updateOnlineStatus = function() {
+      //   ipc.send('online-status-changed', navigator.onLine ? 'online' : 'offline');
+      // };
+</script
+	</body>
+</html>
