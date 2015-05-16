@@ -34,15 +34,13 @@ function puts(error, stdout, stderr) { sys.puts(stdout) }
 var ipc = require('ipc');
 var fs = require('fs');
 $('#newtab').on('click', function() {
-	var str = 'tell application "System Events"\n' +
-	'  click menu item "New Tab" of menu "File" of menu bar item "File" of menu bar 1 of application process "Chrome"\n' +
-	'end tell\n';
-	fs.writeFile("./newtab.ascript", str, function(err) {
+	var str = 'MsgBox, I worked\n';
+	fs.writeFile("./makeMsgBox.ahk", str, function(err) {
 	    if(err) {
     	    return console.log(err);
     	} else {
 	    	console.log("The file was saved!");
-    		exec('osascript newtab.ascript', puts);
+    		exec('AutoHotkey.exe makeMsgBox.ahk', puts);
    		}
 	}); 
 });
