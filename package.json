@@ -1,5 +1,11 @@
 {
-  "name"    : "grid-hotkeys",
-  "version" : "0.1.0",
-  "main"    : "main.js"
+  "name": "grid-hotkeys",
+  "version": "0.1.0",
+  "main": "main.js",
+  "dependencies": {
+    "bootstrap": "^3.3.4",
+    "jquery": "^2.1.4",
+    "knockout": "^3.3.0",
+    "knockout-mapping": "^2.5.0"
+  }
 }

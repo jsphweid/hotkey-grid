@@ -1,52 +1,206 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Hotkey Grid</title>
-     <script src="./bower_components/jquery/dist/jquery.js"></script>
-     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-  </head>
-  <body>
-    <h1>Hotkey Grid</h1>
+    <head>
+        <title>Hotkey Grid</title>
+        <script>
+        window.$ = window.jQuery = require('jquery');
+        require('bootstrap');
+        var ko = require('knockout');
+        require('knockout-mapping');
+                 /* <script src="./bower_components/bootstrap/dist/js/bootstrap.js"*/
+        </script>
+         <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.css">
+    </head>
+    <body>
+    <style>
+    .btn-key {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        width:110%;
+        height: 75px;
+    }
+    </style>
 
-    <h2>Next Action</h2>
-
-    <button accesskey='n' id='newtab'>New Tab</button>
-    Buttons -> execute apple script
-
-    <h2>ASAP</h2>
-
-    <h2>Someday/Maybe</h2>
-
-    <ul>
-    <li>Tabs</li>
-    <li>movable buttons</li>
-    <li>movable tabs</li>
-    <li>dynamically add buttons to automate random menu navigation</li>
-    <li></li>
+<div role="tabpanel">
+    <ul class="nav nav-tabs" role="tablist" data-bind="foreach: config.tabs">
+        <li role="presentation">
+            <a href="#" role="tab" data-toggle="tab" data-bind="text: text, attr: { href: '#' + text() }"></a>
+        </li>
     </ul>
 
-    We are using io.js <script>document.write(process.version)</script>
-    and Electron <script>document.write(process.versions['electron1'])</script>.
+    <!-- Tab panes -->
+    <div class="tab-content" data-bind="foreach: config.tabs">
+        <div role="tabpanel" class="tab-pane" data-bind="attr: {id: text}">
+            <div data-bind="foreach: rows">
+                <div class="row" data-bind="foreach: $data">
+                    <div class="col-xs-2">
+                        <button class="btn btn-primary btn-key" data-bind="html: display"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
 <script>
+// active class on li and div see - http://getbootstrap.com/javascript/#tabs
+var configFixture = {
+    defaultExecutor : 'AutoHotKey.exe',
+    tabs : [ 
+        {
+            key : '1',
+            text : 'chrome',
+            rows : [
+                [
+                    {
+                        key : 'q',
+                        text : 'New Tab',
+                        icon : '',
+                        executor : 'osascript',
+                        script : 'newtab.ascript'
+                    },
+                    {
+                        key : 'w',
+                        text : 'New Window',
+                        icon : '',
+                        executor : 'osascript',
+                        script : 'newwindow.ascript'
+                    },
+                ],
+                [
+                    {
+                        key : 'a',
+                        text : 'aNew Tab',
+                        icon : '',
+                        executor : 'osascript',
+                        script : 'newtab.ascript'
+                    },
+                    {
+                        key : 's',
+                        text : 'sNew Window',
+                        icon : '',
+                        executor : 'osascript',
+                        script : 'newwindow.ascript'
+                    },
+                ],
+                [
+                            {
+                        key : 'z',
+                        text : 'zNew Tab',
+                        icon : '',
+                        executor : 'osascript',
+                        script : 'newtab.ascript'
+                    },
+                    {
+                        key : 'x',
+                        text : 'xNew Window',
+                        icon : '',
+                        executor : 'osascript',
+                        script : 'newwindow.ascript'
+                    }, // key
+                ] // bottom row
+            ] // rows
+        }, // tab
+        {
+            key : '2',
+            text : 'finale',
+            rows : []
+
+        }
+    ] // tabs
+};
+
+var keyboard = [
+    ['q', 'w', 'e', 'r', 't', 'y'],
+    ['a', 's', 'd', 'f', 'g', 'h'],
+    ['z', 'x', 'c', 'v', 'b', 'n']
+];
+
+function fillIn() {
+    var cf = configFixture;
+    for (var t = 0; t < cf.tabs.length; t++) {
+        var tab = cf.tabs[t];
+        for (var r = 0; r < 3; r++) {
+            if (typeof tab.rows[r] === 'undefined') {
+                tab.rows[r] = [];
+            }
+            var row = tab.rows[r];
+            for (var k = 0; k < 6; k++) {
+                if (typeof row[k] === 'undefined') {
+                    row[k] = {
+                        key : keyboard[r][k],
+                        text : 'blank',
+                        icon : '',
+                        executor : 'osascript',
+                        script : 'newwindow.ascript'
+                    };
+                }
+            }
+        }
+
+    }
+}
+fillIn();
+
+
+
+function HostsViewModel() {
+    this.config = ko.mapping.fromJS(configFixture);
+    // add computable names
+    var tabs = this.config.tabs();
+    for (var t = 0; t < tabs.length; t++) {
+        var tab = tabs[t];
+        for (var r = 0; r < 3; r++) {
+            var rows = tab.rows();
+            var row = rows[r];
+            for (var k = 0; k < 6; k++) {
+                row[k].display = ko.computed(function() {
+                    // find location of object
+                    return row[k].text() + '<br/>(' + row[k].key() + ')';
+                });
+            }
+        }
+    }
+    //
+}
+ko.applyBindings(new HostsViewModel());
+
+
+$('.nav-tabs a').click(function (e) {
+    e.preventDefault()
+    $(this).tab('show')
+})
+$('.nav-tabs a').first().tab('show');
+
+// $(document).on('keydown', function() {
+//   if (event.which) {
+//     mainWindow.reload();
+//   }
+// });
+
 var sys = require('sys')
 var exec = require('child_process').exec;
 function puts(error, stdout, stderr) { sys.puts(stdout) }
 var ipc = require('ipc');
 var fs = require('fs');
 $('#newtab').on('click', function() {
-	var str = 'MsgBox, I worked\n';
-	fs.writeFile("./makeMsgBox.ahk", str, function(err) {
-	    if(err) {
-    	    return console.log(err);
-    	} else {
-	    	console.log("The file was saved!");
-    		exec('AutoHotkey.exe makeMsgBox.ahk', puts);
-   		}
-	}); 
+    var str = 'MsgBox, I worked\n';
+    fs.writeFile("./makeMsgBox.ahk", str, function(err) {
+            if(err) {
+                    return console.log(err);
+            } else {
+                console.log("The file was saved!");
+                exec('AutoHotkey.exe makeMsgBox.ahk', puts);
+            }
+    }); 
 });
-      // var updateOnlineStatus = function() {
-      //   ipc.send('online-status-changed', navigator.onLine ? 'online' : 'offline');
-      // };
+            // var updateOnlineStatus = function() {
+            //   ipc.send('online-status-changed', navigator.onLine ? 'online' : 'offline');
+            // };
 </script
-	</body>
+    </body>
 </html>
