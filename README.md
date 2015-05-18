@@ -1,6 +1,15 @@
 # hotkey-grid
 
-*Insert description here*
+Hotkey-grid is a speedy way to execute programs, command line scripts, and gui automation. Computer games often have a grid of hotkeys where the location of the icon for an action corresponds to the location of a key on the keyboard. Hotkey-grid enables this same system for executing commands quickly for almost anything you would want to do with a computer.
+
+# Getting Started
+
+```
+npm install -g electron-prebuilt
+npm install
+
+electron .
+```
 
 # Road Map
 
