@@ -3,15 +3,35 @@
     <head>
         <title>Hotkey Grid</title>
         <script>
+        window.cl = console.log.bind(console);
         window.$ = window.jQuery = require('jquery');
         require('bootstrap');
         var ko = require('knockout');
         require('knockout-mapping');
+        // var keys = require('clays-keys');
+
+        // file system node stuff
+        var sys = require('sys');
+        function puts(error, stdout, stderr) { sys.puts(stdout) }
+        var exec = require('child_process').exec;
+        var fs = require('fs');
+
+                 
                  /* <script src="./bower_components/bootstrap/dist/js/bootstrap.js"*/
+                 // https://github.com/One-com/knockout-dragdrop
+                 // original https://github.com/SteveSanderson/knockout.mapping
+                   // https://github.com/derekpeterson/knockout.mapping/network
+                   // https://github.com/crissdev/knockout.mapping
+                 // http://www.knockmeout.net/2012/02/revisiting-dragging-dropping-and.html
+                 //https://github.com/rniemeyer/knockout-sortable
+
+                 // http://stackoverflow.com/questions/16501207/keep-track-of-tabs-with-knockoutjs-twitter-bootstrap
+                 // http://jsfiddle.net/rniemeyer/wbtvM/
+                 //http://jsfiddle.net/rniemeyer/cGMTV/
         </script>
          <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
     </head>
-    <body>
+    <body class='container'>
     <style>
     .btn-key {
         margin-top: 5px;
@@ -20,7 +40,7 @@
         height: 75px;
     }
     </style>
-
+<button class="btn btn-success" id='save'>Save</button>
 <div role="tabpanel">
     <ul class="nav nav-tabs" role="tablist" data-bind="foreach: config.tabs">
         <li role="presentation">
@@ -34,7 +54,7 @@
             <div data-bind="foreach: rows">
                 <div class="row" data-bind="foreach: $data">
                     <div class="col-xs-2">
-                        <button class="btn btn-primary btn-key" data-bind="html: display"></button>
+                        <button class="btn btn-primary btn-key" data-bind="html: display, click: $root.selectKey"></button>
                     </div>
                 </div>
             </div>
@@ -43,76 +63,24 @@
 
 </div>
 
-
-
+<h1>Edit a button by clicking on it and modifying the values below</h1>
+<div data-bind="with: selectedKey">
+  <div class="row">
+      <div class="col-xs-3">Text</div><div class="col-xs-9"><input data-bind="value:text, valueUpdate:'afterkeydown'"/></div>
+  </div>
+  <div class="row">
+      <div class="col-xs-3">Icon</div><div class="col-xs-9"><input data-bind="value:icon, valueUpdate:'afterkeydown'"/></div>
+  </div>
+  <div class="row">
+      <div class="col-xs-3">Executor</div><div class="col-xs-9"><input data-bind="value:executor, valueUpdate:'afterkeydown'"/></div>
+  </div>
+  <div class="row">
+      <div class="col-xs-3">Script</div><div class="col-xs-9"><input data-bind="value:script, valueUpdate:'afterkeydown'"/></div>
+  </div>
+</div>​
 
 <script>
 // active class on li and div see - http://getbootstrap.com/javascript/#tabs
-var configFixture = {
-    defaultExecutor : 'AutoHotKey.exe',
-    tabs : [ 
-        {
-            key : '1',
-            text : 'chrome',
-            rows : [
-                [
-                    {
-                        key : 'q',
-                        text : 'New Tab',
-                        icon : '',
-                        executor : 'osascript',
-                        script : 'newtab.ascript'
-                    },
-                    {
-                        key : 'w',
-                        text : 'New Window',
-                        icon : '',
-                        executor : 'osascript',
-                        script : 'newwindow.ascript'
-                    },
-                ],
-                [
-                    {
-                        key : 'a',
-                        text : 'aNew Tab',
-                        icon : '',
-                        executor : 'osascript',
-                        script : 'newtab.ascript'
-                    },
-                    {
-                        key : 's',
-                        text : 'sNew Window',
-                        icon : '',
-                        executor : 'osascript',
-                        script : 'newwindow.ascript'
-                    },
-                ],
-                [
-                            {
-                        key : 'z',
-                        text : 'zNew Tab',
-                        icon : '',
-                        executor : 'osascript',
-                        script : 'newtab.ascript'
-                    },
-                    {
-                        key : 'x',
-                        text : 'xNew Window',
-                        icon : '',
-                        executor : 'osascript',
-                        script : 'newwindow.ascript'
-                    }, // key
-                ] // bottom row
-            ] // rows
-        }, // tab
-        {
-            key : '2',
-            text : 'finale',
-            rows : []
-
-        }
-    ] // tabs
-};
 
 var keyboard = [
     ['q', 'w', 'e', 'r', 't', 'y'],
@@ -120,36 +88,11 @@ var keyboard = [
     ['z', 'x', 'c', 'v', 'b', 'n']
 ];
 
-function fillIn() {
-    var cf = configFixture;
-    for (var t = 0; t < cf.tabs.length; t++) {
-        var tab = cf.tabs[t];
-        for (var r = 0; r < 3; r++) {
-            if (typeof tab.rows[r] === 'undefined') {
-                tab.rows[r] = [];
-            }
-            var row = tab.rows[r];
-            for (var k = 0; k < 6; k++) {
-                if (typeof row[k] === 'undefined') {
-                    row[k] = {
-                        key : keyboard[r][k],
-                        text : 'blank',
-                        icon : '',
-                        executor : 'osascript',
-                        script : 'newwindow.ascript'
-                    };
-                }
-            }
-        }
-
-    }
-}
-fillIn();
-
-
-
-function HostsViewModel() {
-    this.config = ko.mapping.fromJS(configFixture);
+function HostsViewModel(config) {
+    var vm = this;
+    this.config = ko.mapping.fromJS(config);
+    this.selectedKey = ko.observable();
+    this.selectKey = function(p) { vm.selectedKey(p); };
     // add computable names
     var tabs = this.config.tabs();
     for (var t = 0; t < tabs.length; t++) {
@@ -157,47 +100,180 @@ function HostsViewModel() {
         for (var r = 0; r < 3; r++) {
             var rows = tab.rows();
             var row = rows[r];
-            for (var k = 0; k < 6; k++) {
-                row[k].display = ko.computed(function() {
+            for (var c = 0; c < 6; c++) {
+                if (typeof this.selectedKey() === 'undefined') this.selectedKey(row[c]);
+                (function(row, r, c) {
+                row[c].display = ko.computed(function() {
                     // find location of object
-                    return row[k].text() + '<br/>(' + row[k].key() + ')';
+                    return row[c].text() + '<br/>' + keyboard[r][c] + '';
                 });
+                })(row, r, c);
             }
         }
     }
-    //
+    // save
+    $('#save').click(function() {
+        var configJson = ko.mapping.toJSON(vm.config);
+        fs.writeFile("./config.hkg", configJson, function(err) {});
+    });
+    // make keys work
+    $(document).on('keydown', function() {
+        if (document.activeElement.tagName === 'INPUT') return;
+        var keyStr = String.fromCharCode(event.which);
+        if (!isNaN(keyStr)) {
+            var index = parseInt(keyStr, 10) - 1;
+            $('.nav-tabs a').slice(index, index + 1).tab('show');
+        } else {
+            for (var r = 0; r < keyboard.length; r++) {
+                for (var c = 0; c < keyboard[r].length; c++) {
+                    if (keyboard[r][c].toUpperCase().charCodeAt() == event.which) {
+
+var i = 0;
+var tabindex = -1;
+$('.nav-tabs a').each(function() {
+    if ($(this).parent().hasClass('active')) {
+        tabindex = i;
+    }
+    i++;
+});
+
+var row = vm.config.tabs()[tabindex].rows()[r];
+var key = row[c];
+cl(tabindex);
+cl(key.executor() + ' ' + key.script());
+exec(key.executor() + ' ' + key.script(), puts);
+
+//     var tabs = vm.config.tabs();
+//     for (var t = 0; t < tabs.length; t++) {
+//         var tab = tabs[t];
+//         for (var r = 0; r < 3; r++) {
+//             var rows = tab.rows();
+//             var row = rows[r];
+//             for (var k = 0; k < 6; k++) {
+//                 exec(row[k].executor() + ' ' + row[k].script(), puts);
+//                 break;
+//             }
+//         }
+//     }
+// alert('stop pressing keys');
+
+
+                        break;
+                    }
+                }
+            }
+        }
+      // if (event.which) {
+      //   mainWindow.reload();
+      // }
+    });
+} // HostsViewModel
+
+var config;
+if (fs.existsSync('./config.hkg')) {
+    var configJson = fs.readFileSync('./config.hkg');
+    config = JSON.parse(configJson);
+} else {
+    config = {
+        // defaultExecutor : 'AutoHotKey.exe',
+        defaultExecutor : 'osascript',
+        tabs : [ 
+            {
+                key : '1',
+                text : 'chrome',
+                rows : [
+                    [
+                        {
+                            text : 'New Tab',
+                            icon : '',
+                            executor : 'osascript',
+                            script : 'newtab.ascript'
+                        },
+                        {
+                            text : 'New Window',
+                            icon : '',
+                            executor : 'osascript',
+                            script : 'newwindow.ascript'
+                        },
+                    ],
+                    [
+                        {
+                            text : 'aNew Tab',
+                            icon : '',
+                            executor : 'osascript',
+                            script : 'newtab.ascript'
+                        },
+                        {
+                            text : 'sNew Window',
+                            icon : '',
+                            executor : 'osascript',
+                            script : 'newwindow.ascript'
+                        },
+                    ],
+                    [
+                        {
+                            text : 'zNew Tab',
+                            icon : '',
+                            executor : 'osascript',
+                            script : 'newtab.ascript'
+                        },
+                        {
+                            text : 'xNew Window',
+                            icon : '',
+                            executor : 'osascript',
+                            script : 'newwindow.ascript'
+                        }, // key
+                    ] // bottom row
+                ] // rows
+            }, // tab
+            {
+                key : '2',
+                text : 'finale',
+                rows : []
+
+            }
+        ] // tabs
+    };
+    function fillInMissingKeys(config) {
+        for (var t = 0; t < config.tabs.length; t++) {
+            var tab = config.tabs[t];
+            for (var r = 0; r < 3; r++) {
+                if (typeof tab.rows[r] === 'undefined') {
+                    tab.rows[r] = [];
+                }
+                var row = tab.rows[r];
+                for (var k = 0; k < 6; k++) {
+                    if (typeof row[k] === 'undefined') {
+                        row[k] = {
+                            key : keyboard[r][k],
+                            text : '______',
+                            icon : '',
+                            executor : '',
+                            script : ''
+                        };
+                    }
+                }
+            }
+
+        }
+    }
+    fillInMissingKeys(config);
 }
-ko.applyBindings(new HostsViewModel());
+
+
+ko.applyBindings(new HostsViewModel(config));
+
 
 
 $('.nav-tabs a').click(function (e) {
-    e.preventDefault()
-    $(this).tab('show')
-})
+    e.preventDefault();
+    $(this).tab('show');
+});
 $('.nav-tabs a').first().tab('show');
 
-// $(document).on('keydown', function() {
-//   if (event.which) {
-//     mainWindow.reload();
-//   }
-// });
 
-var sys = require('sys')
-var exec = require('child_process').exec;
-function puts(error, stdout, stderr) { sys.puts(stdout) }
-var ipc = require('ipc');
-var fs = require('fs');
-$('#newtab').on('click', function() {
-    var str = 'MsgBox, I worked\n';
-    fs.writeFile("./makeMsgBox.ahk", str, function(err) {
-            if(err) {
-                    return console.log(err);
-            } else {
-                console.log("The file was saved!");
-                exec('AutoHotkey.exe makeMsgBox.ahk', puts);
-            }
-    }); 
-});
+
+// var ipc = require('ipc');
             // var updateOnlineStatus = function() {
             //   ipc.send('online-status-changed', navigator.onLine ? 'online' : 'offline');
             // };
