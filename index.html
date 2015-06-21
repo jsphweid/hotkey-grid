@@ -4,10 +4,12 @@
         <title>Hotkey Grid</title>
         <script>
         window.cl = console.log.bind(console);
-        window.$ = window.jQuery = require('jquery');
+        $ = window.$ = window.jQuery = require('jquery');
+        require('jquery-ui');
         require('bootstrap');
         var ko = require('knockout');
         require('knockout-mapping');
+        require('knockout-sortable');
         // var keys = require('clays-keys');
 
         // file system node stuff
@@ -30,19 +32,41 @@
                  //http://jsfiddle.net/rniemeyer/cGMTV/
         </script>
          <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
+         <link rel="stylesheet" href="./node_modules/jquery-ui/themes/smoothness/jquery-ui.css">
     </head>
     <body class='container'>
     <style>
     .btn-key {
         margin-top: 5px;
         margin-bottom: 5px;
-        width:110%;
-        height: 75px;
+        width:95px;
+        height: 55px;
+    }
+    .keySpace {
+        border: black 1px dashed;
+        margin: 0;
+        float: left;
+        padding: 0;
+        width: 100px;
+        height:60px;
+    }
+    .looseKeyBox {
+        list-style-type: none;
+        padding: 5px;
+        border: black 1px solid;
+        z-index:0;
+        height:200px;
+    }
+    #numberedTabs.nav-tabs .active a {
+        background-color:#337ab7;
+        color:#fff;
+    }
+    button.command {
+        width: 100%;
     }
     </style>
-<button class="btn btn-success" id='save'>Save</button>
 <div role="tabpanel">
-    <ul class="nav nav-tabs" role="tablist" data-bind="foreach: config.tabs">
+    <ul class="nav nav-tabs" id='numberedTabs' role="tablist" data-bind="foreach: config.tabs">
         <li role="presentation">
             <a href="#" role="tab" data-toggle="tab" data-bind="text: text, attr: { href: '#' + text() }"></a>
         </li>
@@ -52,9 +76,13 @@
     <div class="tab-content" data-bind="foreach: config.tabs">
         <div role="tabpanel" class="tab-pane" data-bind="attr: {id: text}">
             <div data-bind="foreach: rows">
-                <div class="row" data-bind="foreach: $data">
-                    <div class="col-xs-2">
-                        <button class="btn btn-primary btn-key" data-bind="html: display, click: $root.selectKey"></button>
+                <div class="row" data-bind="foreach: cols">
+                    <div class="col-xs-2 keySpace" data-bind="sortable: { data: keys, allowDrop : $root.isFull }">
+                        <div class="btn btn-primary btn-key"
+                            data-bind="html: $data.text() + '<br>' + $parent.key(),
+                            click: $root.selectKey,
+                            css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().text() !== $data.text() ? 'btn-primary' : 'btn-danger'">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -63,22 +91,43 @@
 
 </div>
 
-<h1>Edit a button by clicking on it and modifying the values below</h1>
-<div data-bind="with: selectedKey">
-  <div class="row">
-      <div class="col-xs-3">Text</div><div class="col-xs-9"><input data-bind="value:text, valueUpdate:'afterkeydown'"/></div>
-  </div>
-  <div class="row">
-      <div class="col-xs-3">Icon</div><div class="col-xs-9"><input data-bind="value:icon, valueUpdate:'afterkeydown'"/></div>
-  </div>
-  <div class="row">
-      <div class="col-xs-3">Executor</div><div class="col-xs-9"><input data-bind="value:executor, valueUpdate:'afterkeydown'"/></div>
-  </div>
-  <div class="row">
-      <div class="col-xs-3">Script</div><div class="col-xs-9"><input data-bind="value:script, valueUpdate:'afterkeydown'"/></div>
-  </div>
-</div>​
-
+<br>
+<div class="row">
+    <div class="col-xs-2">
+        <button class="btn btn-primary command" id='add'>Add</button>
+        <button class="btn btn-success command" id='save'>Save</button>
+    </div>
+    <div class="col-xs-5">
+        <div data-bind="with: selectedKey">
+          <div class="row">
+              <div class="col-xs-3">Text</div><div class="col-xs-9"><input id='textInput' data-bind="value:text, valueUpdate:'afterkeydown'"/></div>
+          </div>
+          <div class="row">
+              <div class="col-xs-3">Icon</div><div class="col-xs-9"><input data-bind="value:icon, valueUpdate:'afterkeydown'"/></div>
+          </div>
+          <div class="row">
+              <div class="col-xs-3">Executor</div><div class="col-xs-9"><input data-bind="value:executor, valueUpdate:'afterkeydown'"/></div>
+          </div>
+          <div class="row">
+              <div class="col-xs-3">Script</div>
+              <div class="col-xs-9"><input data-bind="value:script, valueUpdate:'afterkeydown'"/></div>
+          </div>
+          <div class="row">
+              <button class="btn btn-secondary command" id='clear'>Done</button>
+              <button class="btn btn-danger command" id='delete'>Delete</button>
+          </div>
+        </div>
+    </div>
+    <div class="col-xs-5">
+        <div class="looseKeyBox" data-bind="sortable: config.looseKeys">
+            <div class="btn btn-primary btn-key" 
+            data-bind=" html: text,
+                        click: $root.selectKey,
+                        css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().text() !== $data.text() ? 'btn-primary' : 'btn-danger'"></div>
+        </div>
+        <h4>Loose Keys</h4>
+    </div>
+</div>
 <script>
 // active class on li and div see - http://getbootstrap.com/javascript/#tabs
 
@@ -91,26 +140,51 @@ var keyboard = [
 function HostsViewModel(config) {
     var vm = this;
     this.config = ko.mapping.fromJS(config);
+    this.isFull = function(parent) {
+        return parent().length < 1;
+    };
     this.selectedKey = ko.observable();
-    this.selectKey = function(p) { vm.selectedKey(p); };
-    // add computable names
-    var tabs = this.config.tabs();
-    for (var t = 0; t < tabs.length; t++) {
-        var tab = tabs[t];
-        for (var r = 0; r < 3; r++) {
-            var rows = tab.rows();
-            var row = rows[r];
-            for (var c = 0; c < 6; c++) {
-                if (typeof this.selectedKey() === 'undefined') this.selectedKey(row[c]);
-                (function(row, r, c) {
-                row[c].display = ko.computed(function() {
-                    // find location of object
-                    return row[c].text() + '<br/>' + keyboard[r][c] + '';
-                });
-                })(row, r, c);
+    this.verifyMove = function(arg, event, ui ) {
+        // prevent person from moving off this tab directly by going to the top right corner
+        var targetId = $(event.target).parents().filter('.tab-pane').attr('id');
+        var senderId = $(ui.sender).parents().filter('.tab-pane').attr('id');
+        if (typeof targetId === 'string' && typeof senderId === 'string' && targetId != senderId) arg.cancelDrop = true;
+    };
+    $(document).on('click', '#clear', function() {
+        vm.selectedKey(undefined);
+    });
+    $(document).on('click', '#delete', function() {
+        var key = vm.selectedKey();
+        var tabs = vm.config.tabs();
+        for (var t = 0; t < tabs.length; t++) {
+            var rows = tabs[t].rows();
+            for (var r = 0; r < 3; r++) {
+                var cols = rows[r].cols();
+                for (var k = 0; k < 6; k++) {
+                    if (cols[k].keys()[0] === key) {
+                        cols[k].keys.pop();
+                        break;
+                    }
+                }
             }
+
         }
-    }
+        vm.selectedKey(undefined);
+    });
+    $('#add').click(function() {
+        var key = ko.mapping.fromJS({
+            text : 'New Key',
+            icon : '',
+            executor : vm.config.defaultExecutor,
+            script : ''
+        });
+        vm.config.looseKeys.push(key);
+        vm.selectedKey(key);
+        setTimeout(function() {
+            $('#textInput').focus().select();
+        });
+    });
+    this.selectKey = function(p) { vm.selectedKey(p); };
     // save
     $('#save').click(function() {
         var configJson = ko.mapping.toJSON(vm.config);
@@ -118,7 +192,7 @@ function HostsViewModel(config) {
     });
     // make keys work
     $(document).on('keydown', function() {
-        if (document.activeElement.tagName === 'INPUT') return;
+        if (document.activeElement.tagName === 'INPUT') return true;
         var keyStr = String.fromCharCode(event.which);
         if (!isNaN(keyStr)) {
             var index = parseInt(keyStr, 10) - 1;
@@ -128,35 +202,18 @@ function HostsViewModel(config) {
                 for (var c = 0; c < keyboard[r].length; c++) {
                     if (keyboard[r][c].toUpperCase().charCodeAt() == event.which) {
 
-var i = 0;
-var tabindex = -1;
-$('.nav-tabs a').each(function() {
-    if ($(this).parent().hasClass('active')) {
-        tabindex = i;
-    }
-    i++;
-});
+                        var i = 0;
+                        var tabindex = -1;
+                        $('.nav-tabs a').each(function() {
+                            if ($(this).parent().hasClass('active')) {
+                                tabindex = i;
+                            }
+                            i++;
+                        });
 
-var row = vm.config.tabs()[tabindex].rows()[r];
-var key = row[c];
-cl(tabindex);
-cl(key.executor() + ' ' + key.script());
-exec(key.executor() + ' ' + key.script(), puts);
-
-//     var tabs = vm.config.tabs();
-//     for (var t = 0; t < tabs.length; t++) {
-//         var tab = tabs[t];
-//         for (var r = 0; r < 3; r++) {
-//             var rows = tab.rows();
-//             var row = rows[r];
-//             for (var k = 0; k < 6; k++) {
-//                 exec(row[k].executor() + ' ' + row[k].script(), puts);
-//                 break;
-//             }
-//         }
-//     }
-// alert('stop pressing keys');
-
+                        var row = vm.config.tabs()[tabindex].rows()[r];
+                        var key = row.cols()[c].keys()[0];
+                        exec(key.executor() + ' ' + key.script(), puts);
 
                         break;
                     }
@@ -177,53 +234,26 @@ if (fs.existsSync('./config.hkg')) {
     config = {
         // defaultExecutor : 'AutoHotKey.exe',
         defaultExecutor : 'osascript',
+        looseKeys : [],
         tabs : [ 
             {
                 key : '1',
                 text : 'chrome',
                 rows : [
-                    [
-                        {
+                    {cols : [
+                        {keys : [{
                             text : 'New Tab',
                             icon : '',
                             executor : 'osascript',
                             script : 'newtab.ascript'
-                        },
-                        {
+                        }]},
+                        {keys : [{
                             text : 'New Window',
                             icon : '',
                             executor : 'osascript',
                             script : 'newwindow.ascript'
-                        },
-                    ],
-                    [
-                        {
-                            text : 'aNew Tab',
-                            icon : '',
-                            executor : 'osascript',
-                            script : 'newtab.ascript'
-                        },
-                        {
-                            text : 'sNew Window',
-                            icon : '',
-                            executor : 'osascript',
-                            script : 'newwindow.ascript'
-                        },
-                    ],
-                    [
-                        {
-                            text : 'zNew Tab',
-                            icon : '',
-                            executor : 'osascript',
-                            script : 'newtab.ascript'
-                        },
-                        {
-                            text : 'xNew Window',
-                            icon : '',
-                            executor : 'osascript',
-                            script : 'newwindow.ascript'
-                        }, // key
-                    ] // bottom row
+                        }]}, // key
+                    ]},// bottom row
                 ] // rows
             }, // tab
             {
@@ -239,18 +269,14 @@ if (fs.existsSync('./config.hkg')) {
             var tab = config.tabs[t];
             for (var r = 0; r < 3; r++) {
                 if (typeof tab.rows[r] === 'undefined') {
-                    tab.rows[r] = [];
+                    tab.rows[r] = {cols:[]};
                 }
                 var row = tab.rows[r];
                 for (var k = 0; k < 6; k++) {
-                    if (typeof row[k] === 'undefined') {
-                        row[k] = {
-                            key : keyboard[r][k],
-                            text : '______',
-                            icon : '',
-                            executor : '',
-                            script : ''
-                        };
+                    if (typeof row.cols[k] === 'undefined') {
+                        row.cols[k] = {key: keyboard[r][k], keys:[]};
+                    } else {
+                        row.cols[k].key = keyboard[r][k];
                     }
                 }
             }
@@ -259,17 +285,20 @@ if (fs.existsSync('./config.hkg')) {
     }
     fillInMissingKeys(config);
 }
+var vm = new HostsViewModel(config);
+ko.bindingHandlers.sortable.beforeMove = vm.verifyMove;
+ko.applyBindings(vm);
+
+$(function() {
+
+    $('.nav-tabs a').click(function (e) {
+        e.preventDefault();
+        $(this).tab('show');
+    });
+    $('.nav-tabs a').first().tab('show');
 
 
-ko.applyBindings(new HostsViewModel(config));
-
-
-
-$('.nav-tabs a').click(function (e) {
-    e.preventDefault();
-    $(this).tab('show');
 });
-$('.nav-tabs a').first().tab('show');
 
 
 
@@ -277,6 +306,135 @@ $('.nav-tabs a').first().tab('show');
             // var updateOnlineStatus = function() {
             //   ipc.send('online-status-changed', navigator.onLine ? 'online' : 'offline');
             // };
-</script
+var remote = require('remote');
+var Menu = remote.require('menu');
+var template = [
+  {
+    label: 'Electron',
+    submenu: [
+      {
+        label: 'About Electron',
+        selector: 'orderFrontStandardAboutPanel:'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Services',
+        submenu: []
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Hide Electron',
+        accelerator: 'Command+H',
+        selector: 'hide:'
+      },
+      {
+        label: 'Hide Others',
+        accelerator: 'Command+Shift+H',
+        selector: 'hideOtherApplications:'
+      },
+      {
+        label: 'Show All',
+        selector: 'unhideAllApplications:'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Quit',
+        accelerator: 'Command+Q',
+        selector: 'terminate:'
+      },
+    ]
+  },
+  {
+    label: 'Edit',
+    submenu: [
+      {
+        label: 'Undo',
+        accelerator: 'Command+Z',
+        selector: 'undo:'
+      },
+      {
+        label: 'Redo',
+        accelerator: 'Shift+Command+Z',
+        selector: 'redo:'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Cut',
+        accelerator: 'Command+X',
+        selector: 'cut:'
+      },
+      {
+        label: 'Copy',
+        accelerator: 'Command+C',
+        selector: 'copy:'
+      },
+      {
+        label: 'Paste',
+        accelerator: 'Command+V',
+        selector: 'paste:'
+      },
+      {
+        label: 'Select All',
+        accelerator: 'Command+A',
+        selector: 'selectAll:'
+      }
+    ]
+  },
+  {
+    label: 'View',
+    submenu: [
+      {
+        label: 'Reload',
+        accelerator: 'Command+R',
+        click: function() { remote.getCurrentWindow().reload(); }
+      },
+      {
+        label: 'Toggle DevTools',
+        accelerator: 'Alt+Command+J',
+        click: function() { remote.getCurrentWindow().toggleDevTools(); }
+      },
+    ]
+  },
+  {
+    label: 'Window',
+    submenu: [
+      {
+        label: 'Minimize',
+        accelerator: 'Command+M',
+        selector: 'performMiniaturize:'
+      },
+      {
+        label: 'Close',
+        accelerator: 'Command+W',
+        selector: 'performClose:'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Bring All to Front',
+        selector: 'arrangeInFront:'
+      }
+    ]
+  },
+  {
+    label: 'Help',
+    submenu: []
+  }
+];
+
+menu = Menu.buildFromTemplate(template);
+
+Menu.setApplicationMenu(menu);
+</script>
+
     </body>
 </html>

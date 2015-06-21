@@ -5,7 +5,9 @@
   "dependencies": {
     "bootstrap": "^3.3.4",
     "jquery": "^2.1.4",
+    "jquery-ui": "^1.10.5",
     "knockout": "^3.3.0",
-    "knockout-mapping": "^2.5.0"
+    "knockout-mapping": "^2.5.0",
+    "knockout-sortable": "^0.11.0"
   }
 }
