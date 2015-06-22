@@ -15,18 +15,21 @@ electron .
 
 ## Ordered
 
-- show which button is being edited
+- refactor rest of jquery out
+- set default executor
+- set persistance format in stone
+
 - default mac/windows config based on platform
-- Add/remove/edit tabs
-- drag and drop buttons within tab
 - script folder directory and configuration file (clay)
+  - different directory name for each tab? Can just use the same directory name ~ scripts/
 - seperate repo for finale stuff (including my default layout with all the lua scripts)
+- switch keys when dragging one on top of another ??? is this even desirable?
+- clicking the X for electron should close the entire app
 
 ## Unordered
 
 - be able to make button an image (png/jpeg/etc.)
 - edit script from gui
-- drag and drop buttons between tabs (left click and drag)
 - text search for command name (button text)
 - find script from file finder
 - possibly have a settings tab or file that contains "global variables" that affect functions (in Finale JW lua, for example the person's desired default page height/width for parts that will be used throughout various scripts)
