@@ -5,6 +5,7 @@ Hotkey-grid is a speedy way to execute programs, command line scripts, and gui a
 # Getting Started
 
 ```
+git clone https://github.com/jsphweid/hotkey-grid.git
 npm install -g electron-prebuilt
 npm install
 
@@ -15,7 +16,6 @@ electron .
 
 ## Ordered
 
-- refactor rest of jquery out
 - set default executor
 - set persistance format in stone
 

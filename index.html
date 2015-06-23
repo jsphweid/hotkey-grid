@@ -61,7 +61,7 @@
         background-color:#337ab7;
         color:#fff;
     }
-    button.command {
+    button.full-width {
         width: 100%;
     }
     </style>
@@ -69,23 +69,23 @@
     <ul class="nav nav-tabs" id='numberedTabs' role="tablist" data-bind="sortable: config.tabs">
         <li role="presentation" data-bind="css: { active: $root.selectedTab() === $data }">
             <a href="#" role="tab" data-toggle="tab" 
-            data-bind="text: text() + ' (' + ($index() + 1) + ')',
-                       attr: { href: '#' + text() },
-                       click: $root.selectedTab
+            data-bind="text: tabName() + ' (' + ($index() + 1) + ')',
+                       attr: { href: '#' + tabName() },
+                       click: $root.selectTab
                        "></a>
         </li>
     </ul>
 
     <!-- Tab panes -->
     <div class="tab-content" data-bind="sortable: config.tabs">
-        <div role="tabpanel" class="tab-pane" data-bind="attr: {id: text}, css: { active: $root.selectedTab() === $data }">
+        <div role="tabpanel" class="tab-pane" data-bind="attr: {id: tabName}, css: { active: $root.selectedTab() === $data }">
             <div data-bind="foreach: rows">
                 <div class="row" data-bind="foreach: cols">
                     <div class="col-xs-2 keySpace" data-bind="sortable: { data: keys, allowDrop : $root.isFull }">
                         <div class="btn btn-primary btn-key"
-                            data-bind="html: $data.text() + '<br>' + $parent.key(),
-                            click: $root.selectKey,
-                            css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().text() !== $data.text() ? 'btn-primary' : 'btn-danger'">
+                            data-bind="html: $data.keyName() + '<br>' + $parent.key(),
+                            click: $root.selectedKey,
+                            css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().keyName() !== $data.keyName() ? 'btn-primary' : 'btn-danger'">
                         </div>
                     </div>
                 </div>
@@ -98,12 +98,12 @@
 <br>
 <div class="row">
     <div class="col-xs-2">
-        <button class="btn btn-success command" id='save'>Save</button>
+        <button class="btn btn-success full-width" data-bind='click: $root.saveConfig'>Save</button>
     </div>
     <div class="col-xs-5">
         <div data-bind="with: selectedKey">
           <div class="row">
-              <div class="col-xs-3">Key Name</div><div class="col-xs-9"><input id='textInput' data-bind="value:text, valueUpdate:'afterkeydown'"/></div>
+              <div class="col-xs-3">Key Name</div><div class="col-xs-9"><input id='keyNameInput' data-bind="value:keyName, valueUpdate:'afterkeydown'"/></div>
           </div>
           <div class="row">
               <div class="col-xs-3">Icon</div><div class="col-xs-9"><input data-bind="value:icon, valueUpdate:'afterkeydown'"/></div>
@@ -116,38 +116,38 @@
               <div class="col-xs-9"><input data-bind="value:script, valueUpdate:'afterkeydown'"/></div>
           </div>
           <div class="row">
-              <button class="btn btn-success col-xs-6" id='clear'>Done</button>
-              <button class="btn btn-danger col-xs-6" id='delete'>Delete</button>
+              <button class="btn btn-success col-xs-6" data-bind='click: $root.unfocusKey'>Done</button>
+              <button class="btn btn-danger col-xs-6" data-bind='click: $root.deleteKey'>Delete</button>
           </div>
         </div>
     </div>
     <div class="col-xs-5">
         <div class="looseKeyBox" data-bind="sortable: config.looseKeys">
             <div class="btn btn-primary btn-key" 
-            data-bind=" html: text,
-                        click: $root.selectKey,
-                        css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().text() !== $data.text() ? 'btn-primary' : 'btn-danger'"></div>
+            data-bind=" html: keyName,
+                        click: $root.selectedKey,
+                        css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().keyName() !== $data.keyName() ? 'btn-primary' : 'btn-danger'"></div>
         </div>
         <div class="row">
             <div class="col-xs-6">
                 <h4>Loose Keys</h4>
             </div>
             <div class="col-xs-6">
-                <button class="btn btn-primary command" id='add'>Add</button>
+                <button class="btn btn-primary full-width" data-bind="click : $root.addKey">Add</button>
             </div>
         </div>
     </div>
 </div>
 <div class="row">
     <div class="col-xs-2">
-        <button class="btn btn-success command" data-bind="click : $root.addTab">Add Tab</button>
+        <button class="btn btn-success full-width" data-bind="click : $root.addTab">Add Tab</button>
     </div>
     <div class="col-xs-5">
         <div data-bind="with: selectedTab">
           <div class="row">
               <div class="col-xs-3">Tab Name</div>
               <div class="col-xs-6">
-                <input id='tabText' data-bind="value:text, valueUpdate:'afterkeydown'"/>
+                <input id='tabNameInput' data-bind="value:tabName, valueUpdate:'afterkeydown'"/>`
               </div>
               <button class="btn btn-danger col-xs-3" data-bind="click : $root.deleteTab">Delete</button>
           </div>
@@ -163,6 +163,7 @@ var keyboard = [
     ['z', 'x', 'c', 'v', 'b', 'n']
 ];
 var MAX_TABS = 6;
+var CONFIG_FILE_NAME = './config.hkg';
 
 function fillInMissingKeysOnTab(tab) {
     for (var r = 0; r < 3; r++) {
@@ -186,17 +187,17 @@ function HostsViewModel(config) {
     this.config = ko.mapping.fromJS(config);
     // tab stuff
     this.selectedTab = ko.observable();
-    this.selectedTab(this.config.tabs()[0]);
-    //vm.config.tabs()[tabindex]
-    this.clearTab = function() {
-        vm.selectedTab(undefined);
+    this.selectTab = function(t) {
+        if (vm.selectedTab !== t) vm.selectedKey(undefined);
+        vm.selectedTab(t);
     };
+    this.selectedTab(this.config.tabs()[0]);
     this.addTab = function() {
         if (vm.config.tabs().length === MAX_TABS) return;
-        var tab = ko.mapping.fromJS(fillInMissingKeysOnTab({ text : 'New Tab', rows : [] }));
+        var tab = ko.mapping.fromJS(fillInMissingKeysOnTab({ tabName : 'New Tab', rows : [] }));
         vm.config.tabs.push(tab);
-        vm.selectedTab(tab);
-        setTimeout(function() {   $('#tabText').focus().select();   });
+        vm.selectTab(tab);
+        setTimeout(function() {   $('#tabNameInput').focus().select();   });
     };
     this.deleteTab = function() {
         var selectedTab = vm.selectedTab();
@@ -206,25 +207,9 @@ function HostsViewModel(config) {
             if (tabs[t] == selectedTab) {
                 vm.config.tabs.splice(t,1);
                 if (t === 0) {
-                    vm.selectedTab(tabs[0]);
+                    vm.selectTab(tabs[0]);
                 } else {
-                    vm.selectedTab(tabs[t-1]);
-                }
-                return;
-            }
-        }
-    };
-    this.moveRight = function() {
-        var selectedTab = vm.selectedTab();
-        var tabs = vm.config.tabs();
-        if (tabs.length === 1) { alert('You cannot delete your only tab.'); return }
-        for (var t = 0; t < tabs.length; t++) {
-            if (tabs[t] == selectedTab) {
-                vm.config.tabs.splice(t,1);
-                if (t === 0) {
-                    vm.selectedTab(tabs[0]);
-                } else {
-                    vm.selectedTab(tabs[t-1]);
+                    vm.selectTab(tabs[t-1]);
                 }
                 return;
             }
@@ -236,16 +221,25 @@ function HostsViewModel(config) {
     };
     this.selectedKey = ko.observable();
     this.verifyMove = function(arg, event, ui ) {
-        if ($(ui.sender).attr('id') === 'numberedTabs' && $(event.target).attr('id') !== 'numberedTabs') { arg.cancelDrop = true; return }
+        // prevent swapping tabs and keys
+        var targetParent = arg.targetParent();
+        if (typeof arg.item.keyName !== 'undefined' // is key
+             && targetParent[0] && typeof targetParent[0].tabName !== 'undefined') { // is tab
+            arg.cancelDrop = true; return
+        }
+        var $sender = $(arg.sourceParentNode);
+        var $target = $(event.target);
+        if ($sender.attr('id') === 'numberedTabs' && $target.attr('id') !== 'numberedTabs' ||
+            $target.attr('id') === 'numberedTabs' && $sender.attr('id') !== 'numberedTabs') {
+            arg.cancelDrop = true; return
+        }
         // prevent person from moving off this tab directly by going to the top right corner
         var targetId = $(event.target).parents().filter('.tab-pane').attr('id');
         var senderId = $(ui.sender).parents().filter('.tab-pane').attr('id');
         if (typeof targetId === 'string' && typeof senderId === 'string' && targetId != senderId) arg.cancelDrop = true;
     };
-    $(document).on('click', '#clear', function() {
-        vm.selectedKey(undefined);
-    });
-    $(document).on('click', '#delete', function() {
+    this.unfocusKey = function() { vm.selectedKey(undefined); };
+    this.deleteKey = function() {
         var key = vm.selectedKey();
         var tabs = vm.config.tabs();
         for (var t = 0; t < tabs.length; t++) {
@@ -259,13 +253,19 @@ function HostsViewModel(config) {
                     }
                 }
             }
-
+        }
+        var looseKeys = vm.config.looseKeys();
+        for (var k = 0; k < looseKeys.length; k++) {
+            if (looseKeys[k] === key) {
+                vm.config.looseKeys.splice(k,1);
+                break;
+            }
         }
         vm.selectedKey(undefined);
-    });
-    $('#add').click(function() {
+    };
+    this.addKey = function() {
         var key = ko.mapping.fromJS({
-            text : 'New Key',
+            keyName : 'New Key',
             icon : '',
             executor : vm.config.defaultExecutor,
             script : ''
@@ -273,16 +273,14 @@ function HostsViewModel(config) {
         vm.config.looseKeys.push(key);
         vm.selectedKey(key);
         setTimeout(function() {
-            $('#textInput').focus().select();
+            $('#keyNameInput').focus().select();
         });
-    });
-    this.selectKey = function(p) { vm.selectedKey(p); };
+    };
 
-    // save
-    $('#save').click(function() {
+    this.saveConfig = function() {
         var configJson = ko.mapping.toJSON(vm.config);
-        fs.writeFile("./config.hkg", configJson, function(err) {});
-    });
+        fs.writeFile(CONFIG_FILE_NAME, configJson, function(err) {});
+    };
 
     // make keys work
     $(document).on('keydown', function() {
@@ -292,9 +290,9 @@ function HostsViewModel(config) {
             var index = parseInt(keyStr, 10) - 1;
             var tabs = vm.config.tabs();
             if (index === -1) {
-                vm.selectedTab(vm.config.tabs()[0]);
+                vm.selectTab(vm.config.tabs()[0]);
             } else if (tabs.length > index) {
-                vm.selectedTab(vm.config.tabs()[index]);
+                vm.selectTab(vm.config.tabs()[index]);
             } else if (tabs.length < MAX_TABS) {
                 vm.addTab();
             }
@@ -304,25 +302,20 @@ function HostsViewModel(config) {
             for (var r = 0; r < keyboard.length; r++) {
                 for (var c = 0; c < keyboard[r].length; c++) {
                     if (keyboard[r][c].toUpperCase().charCodeAt() == event.which) {
-
                         var row = selectedTab.rows()[r];
                         var key = row.cols()[c].keys()[0];
                         exec(key.executor() + ' ' + key.script(), puts);
-
                         break;
                     }
                 }
             }
         }
-      // if (event.which) {
-      //   mainWindow.reload();
-      // }
     });
 } // HostsViewModel
 
 var config;
-if (fs.existsSync('./config.hkg')) {
-    var configJson = fs.readFileSync('./config.hkg');
+if (fs.existsSync(CONFIG_FILE_NAME)) {
+    var configJson = fs.readFileSync(CONFIG_FILE_NAME);
     config = JSON.parse(configJson);
 } else {
     config = {
@@ -331,17 +324,17 @@ if (fs.existsSync('./config.hkg')) {
         looseKeys : [],
         tabs : [ 
             {
-                text : 'chrome',
+                tabName : 'chrome',
                 rows : [
                     {cols : [
                         {keys : [{
-                            text : 'New Tab',
+                            keyName : 'New Tab',
                             icon : '',
                             executor : 'osascript',
                             script : 'newtab.ascript'
                         }]},
                         {keys : [{
-                            text : 'New Window',
+                            keyName : 'New Window',
                             icon : '',
                             executor : 'osascript',
                             script : 'newwindow.ascript'
@@ -350,7 +343,7 @@ if (fs.existsSync('./config.hkg')) {
                 ] // rows
             }, // tab
             {
-                text : 'finale',
+                tabName : 'finale',
                 rows : []
 
             }
@@ -364,16 +357,6 @@ var vm = new HostsViewModel(config);
 ko.bindingHandlers.sortable.beforeMove = vm.verifyMove;
 ko.applyBindings(vm);
 
-// $(function() {
-
-//     $('.nav-tabs a').click(function (e) {
-//         e.preventDefault();
-//         $(this).tab('show');
-//     });
-//     $('.nav-tabs a').first().tab('show');
-
-
-// });
 
 
 
