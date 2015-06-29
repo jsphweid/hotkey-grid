@@ -18,7 +18,7 @@ app.on('window-all-closed', function() {
 // initialization and ready for creating browser windows.
 app.on('ready', function() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600, title : "Hotkey-Grid"});
+  mainWindow = new BrowserWindow({width: 1000, height: 800, title : "Hotkey-Grid"});
 
   // and load the index.html of the app.
   // mainWindow.openDevTools();

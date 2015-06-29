@@ -16,15 +16,18 @@ electron .
 
 ## Ready to work on 
 
+- new key too big, keyspacing not perfect
+- find script with file browser AND/OR type stuff in
 - set default executor
-- replace css keyName with id computed
+- BUG: replace css keyName with id computed
 - edit script from gui -> open in favorite text editor
   - set default script editor
+- show error message if script cannot execute
+- pro mode
 
 ## Needs Discussion
 
 - Directory Structure
-  - find script from file finder
   - default mac/windows config based on platform
   - script folder directory and configuration file (clay)
     - different directory name for each tab? Can just use the same directory name ~ scripts/
@@ -40,5 +43,9 @@ electron .
 
 ## Someday/Maybe
 
+- import config (tabs and keys)
+  - possibly export just certain tabs / keys
+  - possibly import just certain tabs / keys
+  - worry about too many loose keys (... to see more)
 - text search for command name (button text)
 

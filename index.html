@@ -3,69 +3,61 @@
     <head>
         <title>Hotkey Grid</title>
         <script>
-        window.cl = console.log.bind(console);
-        $ = window.$ = window.jQuery = require('jquery');
-        require('jquery-ui');
-        require('bootstrap');
-        var ko = require('knockout');
-        require('knockout-mapping');
-        require('knockout-sortable');
-        // var keys = require('clays-keys');
+          window.cl = console.log.bind(console);
+          $ = window.$ = window.jQuery = require('jquery');
+          require('jquery-ui');
+          require('bootstrap');
+          var ko = require('knockout');
+          require('knockout-mapping');
+          require('knockout-sortable');
+          // var keys = require('clays-keys');
 
-        // file system node stuff
-        var sys = require('sys');
-        function puts(error, stdout, stderr) { sys.puts(stdout) }
-        var exec = require('child_process').exec;
-        var fs = require('fs');
+          // file system node stuff
+          var sys = require('sys');
+          function puts(error, stdout, stderr) { sys.puts(stdout) }
+          var exec = require('child_process').exec;
+          var fs = require('fs');
 
-                 
-                 /* <script src="./bower_components/bootstrap/dist/js/bootstrap.js"*/
-                 // https://github.com/One-com/knockout-dragdrop
-                 // original https://github.com/SteveSanderson/knockout.mapping
-                   // https://github.com/derekpeterson/knockout.mapping/network
-                   // https://github.com/crissdev/knockout.mapping
-                 // http://www.knockmeout.net/2012/02/revisiting-dragging-dropping-and.html
-                 //https://github.com/rniemeyer/knockout-sortable
-
-                 // http://stackoverflow.com/questions/16501207/keep-track-of-tabs-with-knockoutjs-twitter-bootstrap
-                 // http://jsfiddle.net/rniemeyer/wbtvM/
-                 //http://jsfiddle.net/rniemeyer/cGMTV/
+          // for opening files
+          var remote = require('remote'); 
+          var dialog = remote.require('dialog'); 
         </script>
          <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
          <link rel="stylesheet" href="./node_modules/jquery-ui/themes/smoothness/jquery-ui.css">
     </head>
-    <body class='container'>
+    <body class='fluid-container' style="margin:15px;">
     <style>
-    .btn-key {
-        margin-top: 5px;
-        margin-bottom: 5px;
-        width:95px;
-        height: 55px;
-    }
-    .keySpace {
-        border: black 1px dashed;
-        margin: 0;
-        float: left;
-        padding: 0;
-        width: 100px;
-        height:60px;
-    }
-    .looseKeyBox {
-        list-style-type: none;
-        padding: 5px;
-        border: black 1px solid;
-        z-index:0;
-        height:200px;
-    }
-    #numberedTabs.nav-tabs .active a {
-        background-color:#337ab7;
-        color:#fff;
-    }
-    button.full-width {
-        width: 100%;
-    }
+      .btn-key {
+          margin: 5px;
+          width:95%;
+          height: 95%;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+      .keySpace {
+          border: black 1px dashed;
+          margin: 0;
+          float: left;
+          padding: 0;
+          height:120px;
+      }
+      .looseKeyBox {
+          list-style-type: none;
+          padding: 5px;
+          border: black 1px solid;
+          z-index:0;
+          height:200px;
+      }
+      #numberedTabs.nav-tabs .active a {
+          background-color:#337ab7;
+          color:#fff;
+      }
+      .full-width {
+          width: 100%;
+      }
     </style>
-<div role="tabpanel">
+<div classs="" role="tabpanel">
     <ul class="nav nav-tabs" id='numberedTabs' role="tablist" data-bind="sortable: config.tabs">
         <li role="presentation" data-bind="css: { active: $root.selectedTab() === $data }">
             <a href="#" role="tab" data-toggle="tab" 
@@ -79,8 +71,8 @@
     <!-- Tab panes -->
     <div class="tab-content" data-bind="sortable: config.tabs">
         <div role="tabpanel" class="tab-pane" data-bind="attr: {id: tabName}, css: { active: $root.selectedTab() === $data }">
-            <div data-bind="foreach: rows">
-                <div class="row" data-bind="foreach: cols">
+            <div class="" data-bind="foreach: rows">
+                <div class="" data-bind="foreach: cols">
                     <div class="col-xs-2 keySpace" data-bind="sortable: { data: keys, allowDrop : $root.isFull }">
                         <div class="btn btn-primary btn-key"
                             data-bind="html: $root.keyHtml($data) + '<br>' + $parent.key(),
@@ -98,9 +90,11 @@
 <br>
 <div class="row">
     <div class="col-xs-2">
-        <button class="btn btn-success full-width" data-bind='click: $root.saveConfig'>Save</button>
+        <button class="btn btn-success full-width" data-bind='click: $root.switchEditMode,
+                       html: $root.editmode() ? "Use Mode" : "Edit Mode"'></button>
+        <button class="btn btn-success full-width" data-bind='click: $root.saveConfig, visible: $root.editmode()'>Save</button>
     </div>
-    <div class="col-xs-5">
+    <div class="col-xs-5" data-bind="visible: $root.editmode()">
         <div data-bind="with: selectedKey">
           <div class="row">
               <div class="col-xs-3">Name</div><div class="col-xs-9"><input id='keyNameInput' data-bind="value:keyName, valueUpdate:'afterkeydown'"/></div>
@@ -113,7 +107,10 @@
           </div>
           <div class="row">
               <div class="col-xs-3">Script</div>
-              <div class="col-xs-9"><input data-bind="value:script, valueUpdate:'afterkeydown'"/></div>
+              <div class="col-xs-9">
+                <input data-bind="value:script, valueUpdate:'afterkeydown'"/>
+                <!-- <input id="asdf" type='file' data-bind="value:script"/> -->
+              </div>
           </div>
           <div class="row">
               <button class="btn btn-success col-xs-6" data-bind='click: $root.unfocusKey'>Done</button>
@@ -121,7 +118,7 @@
           </div>
         </div>
     </div>
-    <div class="col-xs-5">
+    <div class="col-xs-5" data-bind="visible: $root.editmode()">
         <div class="looseKeyBox" data-bind="sortable: config.looseKeys">
             <div class="btn btn-primary btn-key" 
             data-bind=" html: $root.keyHtml($data),
@@ -138,7 +135,7 @@
         </div>
     </div>
 </div>
-<div class="row">
+<div class="row" data-bind="visible: $root.editmode()">
     <div class="col-xs-2">
         <button class="btn btn-success full-width" data-bind="click : $root.addTab">Add Tab</button>
     </div>
@@ -181,6 +178,9 @@ function fillInMissingKeysOnTab(tab) {
     }
     return tab;
 }
+function getFilePath() {
+  return dialog.showOpenDialog({ properties: [ 'openFile']});
+}
 
 function HostsViewModel(config) {
     var vm = this;
@@ -193,6 +193,12 @@ function HostsViewModel(config) {
         } else {
             return key.keyName();
         }
+    };
+    // edit v. use mode
+    this.editmode = ko.observable(true);
+    this.switchEditMode = function() {
+      //$root.editmode(!$root.editmode())
+      vm.editmode(!vm.editmode());
     };
     // tab stuff
     this.selectedTab = ko.observable();
