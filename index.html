@@ -21,6 +21,7 @@
           // for opening files
           var remote = require('remote'); 
           var dialog = remote.require('dialog'); 
+          //http://www.mylifeforthecode.com/getting-started-with-standard-dialogs-in-electron/
         </script>
          <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
          <link rel="stylesheet" href="./node_modules/jquery-ui/themes/smoothness/jquery-ui.css">
@@ -28,13 +29,15 @@
     <body class='fluid-container' style="margin:15px;">
     <style>
       .btn-key {
-          margin: 5px;
+          margin: 4px;
           width:95%;
           height: 95%;
-  position: relative;
-  top: 50%;
-  transform: translateY(-50%);
-}
+      }
+      .key-text {
+          position: relative;
+          top: 50%;
+          transform: translateY(-50%);
+      }
       .keySpace {
           border: black 1px dashed;
           margin: 0;
@@ -75,9 +78,9 @@
                 <div class="" data-bind="foreach: cols">
                     <div class="col-xs-2 keySpace" data-bind="sortable: { data: keys, allowDrop : $root.isFull }">
                         <div class="btn btn-primary btn-key"
-                            data-bind="html: $root.keyHtml($data) + '<br>' + $parent.key(),
-                            click: $root.selectedKey,
+                            data-bind="click: $root.selectedKey,
                             css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().keyName() !== $data.keyName() ? 'btn-primary' : 'btn-danger'">
+                            <div class="key-text" data-bind="html: $root.keyHtml($data) + '<br>(' + $parent.key() + ')'"></div>
                         </div>
                     </div>
                 </div>
@@ -93,6 +96,7 @@
         <button class="btn btn-success full-width" data-bind='click: $root.switchEditMode,
                        html: $root.editmode() ? "Use Mode" : "Edit Mode"'></button>
         <button class="btn btn-success full-width" data-bind='click: $root.saveConfig, visible: $root.editmode()'>Save</button>
+        <button class="btn btn-success full-width" data-bind='click: $root.undoPop, visible: $root.editmode()'>Undo</button>
     </div>
     <div class="col-xs-5" data-bind="visible: $root.editmode()">
         <div data-bind="with: selectedKey">
@@ -113,14 +117,14 @@
               </div>
           </div>
           <div class="row">
-              <button class="btn btn-success col-xs-6" data-bind='click: $root.unfocusKey'>Done</button>
-              <button class="btn btn-danger col-xs-6" data-bind='click: $root.deleteKey'>Delete</button>
+              <!-- <button class="btn btn-success col-xs-6" data-bind='click: $root.unfocusKey'>Done</button> -->
+              <button class="btn btn-danger col-xs-12" data-bind='click: $root.deleteKey'>Delete</button>
           </div>
         </div>
     </div>
     <div class="col-xs-5" data-bind="visible: $root.editmode()">
         <div class="looseKeyBox" data-bind="sortable: config.looseKeys">
-            <div class="btn btn-primary btn-key" 
+            <div class="btn btn-primary" 
             data-bind=" html: $root.keyHtml($data),
                         click: $root.selectedKey,
                         css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().keyName() !== $data.keyName() ? 'btn-primary' : 'btn-danger'"></div>
@@ -151,6 +155,20 @@
         </div>
     </div>
 </div>
+<div class="row" data-bind="visible: $root.editmode()">
+  <div class="col-xs-3">
+    Default Executor
+  </div>
+  <div class="col-xs-3">
+    <input id='tabNameInput' data-bind="value:config.defaultExecutor, valueUpdate:'afterkeydown'"/>`
+  </div>
+  <div class="col-xs-3">
+    Default Script Editor
+  </div>
+  <div class="col-xs-3">
+    <input id='tabNameInput' data-bind="value:config.defaultScriptEditor, valueUpdate:'afterkeydown'"/>`
+  </div>
+</div>
 <script>
 // active class on li and div see - http://getbootstrap.com/javascript/#tabs
 
@@ -160,6 +178,8 @@ var keyboard = [
     ['z', 'x', 'c', 'v', 'b', 'n']
 ];
 var MAX_TABS = 6;
+var DEFAULT_CONFIG_FILE_NAME = './default-config.hkg';
+var MY_CONFIG_FILE_NAME = './my-config.hkg';
 var CONFIG_FILE_NAME = './config.hkg';
 
 function fillInMissingKeysOnTab(tab) {
@@ -185,6 +205,7 @@ function getFilePath() {
 function HostsViewModel(config) {
     var vm = this;
     this.config = ko.mapping.fromJS(config);
+
     // add computed fields to Keys
     this.keyHtml = function(key) {
         var icon = key.icon();
@@ -253,7 +274,7 @@ function HostsViewModel(config) {
         var senderId = $(ui.sender).parents().filter('.tab-pane').attr('id');
         if (typeof targetId === 'string' && typeof senderId === 'string' && targetId != senderId) arg.cancelDrop = true;
     };
-    this.unfocusKey = function() { vm.selectedKey(undefined); };
+    // this.unfocusKey = function() { vm.selectedKey(undefined); };
     this.deleteKey = function() {
         var key = vm.selectedKey();
         var tabs = vm.config.tabs();
@@ -326,44 +347,68 @@ function HostsViewModel(config) {
             }
         }
     });
+  // auto save and undo features
+  ko.computed(function() {
+    return ko.mapping.toJSON(vm.config);
+  }).subscribe(function(configJson) {
+    gbl.undoStack.push(configJson);
+    fs.writeFile(CONFIG_FILE_NAME, configJson, function(err) {});
+  });
+  this.undoPop = function() {
+    var configJson = gbl.undoStack.pop();
+    if (typeof configJson !== 'undefined') {
+//       var vm = new HostsViewModel(JSON.parse(configJson));
+// ko.bindingHandlers.sortable.beforeMove = vm.verifyMove;
+// ko.applyBindings(vm);
+
+      // vm.config(ko.mapping.fromJSON(configJson));
+    }
+  };
 } // HostsViewModel
+
+var gbl = {
+  undoStack : []
+};
+
 
 var config;
 if (fs.existsSync(CONFIG_FILE_NAME)) {
     var configJson = fs.readFileSync(CONFIG_FILE_NAME);
     config = JSON.parse(configJson);
 } else {
-    config = {
-        // defaultExecutor : 'AutoHotKey.exe',
-        defaultExecutor : 'osascript',
-        looseKeys : [],
-        tabs : [ 
-            {
-                tabName : 'chrome',
-                rows : [
-                    {cols : [
-                        {keys : [{
-                            keyName : 'New Tab',
-                            icon : '',
-                            executor : 'osascript',
-                            script : 'newtab.ascript'
-                        }]},
-                        {keys : [{
-                            keyName : 'New Window',
-                            icon : '',
-                            executor : 'osascript',
-                            script : 'newwindow.ascript'
-                        }]}, // key
-                    ]},// bottom row
-                ] // rows
-            }, // tab
-            {
-                tabName : 'finale',
-                rows : []
+  config = {"defaultExecutor":"autohotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts/win-ahk/makemsgbox.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts/mac/newtab.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icron","icon":"pic.png","executor":"open pic.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
+    // config = {
+    //     // defaultExecutor : 'AutoHotKey.exe',
+    //     defaultExecutor : 'osascript',
+    //     defaultScriptEditor : 'sublime',
+    //     looseKeys : [],
+    //     tabs : [ 
+    //         {
+    //             tabName : 'chrome',
+    //             rows : [
+    //                 {cols : [
+    //                     {keys : [{
+    //                         keyName : 'New Tab',
+    //                         icon : '',
+    //                         executor : 'osascript',
+    //                         script : 'newtab.ascript'
+    //                     }]},
+    //                     {keys : [{
+    //                         keyName : 'New Window',
+    //                         icon : '',
+    //                         executor : 'osascript',
+    //                         script : 'newwindow.ascript'
+    //                     }]}, // key
+    //                 ]},// bottom row
+    //             ] // rows
+    //         }, // tab
+    //         {
+    //             tabName : 'finale',
+    //             rows : []
 
-            }
-        ] // tabs
-    };
+    //         }
+    //     ] // tabs
+    // };
     for (var t = 0; t < config.tabs.length; t++) {
         fillInMissingKeysOnTab(config.tabs[t]);
     }
