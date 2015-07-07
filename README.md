@@ -16,11 +16,7 @@ electron .
 
 ## Ready to work on 
 
-- key parentheses
 - pro mode ( show/hides hotkeys)
-- save automatically
-  - backup as
-
 - find script with file browser AND/OR type stuff in
   - file/name
   - find - $('#asdf')[0].files[0].path

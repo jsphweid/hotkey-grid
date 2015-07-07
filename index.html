@@ -79,7 +79,7 @@
                     <div class="col-xs-2 keySpace" data-bind="sortable: { data: keys, allowDrop : $root.isFull }">
                         <div class="btn btn-primary btn-key"
                             data-bind="click: $root.selectedKey,
-                            css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().keyName() !== $data.keyName() ? 'btn-primary' : 'btn-danger'">
+                            css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey() !== $data ? 'btn-primary' : 'btn-danger'">
                             <div class="key-text" data-bind="html: $root.keyHtml($data) + '<br>(' + $parent.key() + ')'"></div>
                         </div>
                     </div>
@@ -95,8 +95,6 @@
     <div class="col-xs-2">
         <button class="btn btn-success full-width" data-bind='click: $root.switchEditMode,
                        html: $root.editmode() ? "Use Mode" : "Edit Mode"'></button>
-        <button class="btn btn-success full-width" data-bind='click: $root.saveConfig, visible: $root.editmode()'>Save</button>
-        <button class="btn btn-success full-width" data-bind='click: $root.undoPop, visible: $root.editmode()'>Undo</button>
     </div>
     <div class="col-xs-5" data-bind="visible: $root.editmode()">
         <div data-bind="with: selectedKey">
@@ -127,7 +125,7 @@
             <div class="btn btn-primary" 
             data-bind=" html: $root.keyHtml($data),
                         click: $root.selectedKey,
-                        css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey().keyName() !== $data.keyName() ? 'btn-primary' : 'btn-danger'"></div>
+                        css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey() !== $data ? 'btn-primary' : 'btn-danger'"></div>
         </div>
         <div class="row">
             <div class="col-xs-6">
@@ -313,11 +311,6 @@ function HostsViewModel(config) {
         });
     };
 
-    this.saveConfig = function() {
-        var configJson = ko.mapping.toJSON(vm.config);
-        fs.writeFile(CONFIG_FILE_NAME, configJson, function(err) {});
-    };
-
     // make keydown's activate tabs and keys
     $(document).on('keydown', function() {
         if (document.activeElement.tagName === 'INPUT') return true;
@@ -347,29 +340,13 @@ function HostsViewModel(config) {
             }
         }
     });
-  // auto save and undo features
+  // auto save
   ko.computed(function() {
     return ko.mapping.toJSON(vm.config);
   }).subscribe(function(configJson) {
-    gbl.undoStack.push(configJson);
     fs.writeFile(CONFIG_FILE_NAME, configJson, function(err) {});
   });
-  this.undoPop = function() {
-    var configJson = gbl.undoStack.pop();
-    if (typeof configJson !== 'undefined') {
-//       var vm = new HostsViewModel(JSON.parse(configJson));
-// ko.bindingHandlers.sortable.beforeMove = vm.verifyMove;
-// ko.applyBindings(vm);
-
-      // vm.config(ko.mapping.fromJSON(configJson));
-    }
-  };
 } // HostsViewModel
-
-var gbl = {
-  undoStack : []
-};
-
 
 var config;
 if (fs.existsSync(CONFIG_FILE_NAME)) {
