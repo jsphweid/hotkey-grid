@@ -21,11 +21,6 @@ electron .
   - file/name
   - find - $('#asdf')[0].files[0].path
   - edit
-- set default executor
-- BUG: replace css keyName with id computed
-- edit script from gui -> open in favorite text editor
-  - set default script editor
-- show error message if script cannot execute
 
 - package up electron as exe
 - zip up electron + finale for finale people

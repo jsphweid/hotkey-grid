@@ -109,10 +109,12 @@
           </div>
           <div class="row">
               <div class="col-xs-3">Script</div>
-              <div class="col-xs-9">
-                <input data-bind="value:script, valueUpdate:'afterkeydown'"/>
+              <div class="col-xs-6">
+                <button class='btn btn-sm btn-warning full-width' data-bind="click: $root.getFilePath, text: $root.getFileName(script()), attr : { title: script }"></button>
+                <!-- <input data-bind="value:script, valueUpdate:'afterkeydown'"/> -->
                 <!-- <input id="asdf" type='file' data-bind="value:script"/> -->
               </div>
+              <div class="col-xs-3"><button class='btn btn-sm btn-success full-width' data-bind="enable:script, click: $root.editScript ">Edit</button></div>
           </div>
           <div class="row">
               <!-- <button class="btn btn-success col-xs-6" data-bind='click: $root.unfocusKey'>Done</button> -->
@@ -167,6 +169,13 @@
     <input id='tabNameInput' data-bind="value:config.defaultScriptEditor, valueUpdate:'afterkeydown'"/>`
   </div>
 </div>
+<div class="row">
+  <div class="col-xs-3">
+    Command Output
+  </div>
+  <div class="col-xs-9" data-bind="text: $root.commandOutput">
+  </div>
+</div>
 <script>
 // active class on li and div see - http://getbootstrap.com/javascript/#tabs
 
@@ -196,9 +205,6 @@ function fillInMissingKeysOnTab(tab) {
     }
     return tab;
 }
-function getFilePath() {
-  return dialog.showOpenDialog({ properties: [ 'openFile']});
-}
 
 function HostsViewModel(config) {
     var vm = this;
@@ -218,6 +224,34 @@ function HostsViewModel(config) {
     this.switchEditMode = function() {
       //$root.editmode(!$root.editmode())
       vm.editmode(!vm.editmode());
+    };
+    // file path
+    this.getFilePath = function (key) {
+      var cwd = process.cwd();
+      var posix = cwd.indexOf('/') !== -1;
+      cwd += posix ? '/' : '\\';
+      var newPath = dialog.showOpenDialog({ defaultPath: cwd + key.script(), properties: [ 'openFile']});
+      var newRelativePath = (typeof newPath === 'undefined') ? '' : newPath[0].replace(cwd, '');
+      key.script(newRelativePath);
+    };
+    this.getFileName = function(path) {
+      // var path = key.script();
+      if (path === '') return '(Click to set a script)';
+      var segs = path.split('/');
+      if (segs.length > 1) {
+        return segs.pop();
+      } else {
+        return path.split('\\').pop();
+      }
+    };
+    // edit script
+    this.editScript = function(key) {
+      debugger;
+      var command = vm.config.defaultScriptEditor() + ' ' + key.script();
+      exec(command, function(e, stdout, stderr) {
+                        if (stderr) { alert(stderr); }
+                        vm.commandOutput(stdout);
+                      });
     };
     // tab stuff
     this.selectedTab = ko.observable();
@@ -329,17 +363,22 @@ function HostsViewModel(config) {
             var selectedTab = vm.selectedTab();
             if (typeof selectedTab === 'undefined') return;
             for (var r = 0; r < keyboard.length; r++) {
-                for (var c = 0; c < keyboard[r].length; c++) {
-                    if (keyboard[r][c].toUpperCase().charCodeAt() == event.which) {
-                        var row = selectedTab.rows()[r];
-                        var key = row.cols()[c].keys()[0];
-                        exec(key.executor() + ' ' + key.script(), puts);
-                        break;
-                    }
-                }
-            }
-        }
-    });
+              for (var c = 0; c < keyboard[r].length; c++) {
+                  if (keyboard[r][c].toUpperCase().charCodeAt() == event.which) {
+                      var row = selectedTab.rows()[r];
+                      var key = row.cols()[c].keys()[0];
+                      exec(key.executor() + ' ' + key.script(), function(e, stdout, stderr) {
+                        if (stderr) { alert(stderr); }
+                        vm.commandOutput(stdout);
+                      });
+                      break;
+                  }
+              }
+          }
+      }
+  });
+  // command output
+  vm.commandOutput = ko.observable();
   // auto save
   ko.computed(function() {
     return ko.mapping.toJSON(vm.config);
