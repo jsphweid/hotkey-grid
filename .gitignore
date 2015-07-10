@@ -1,5 +1,21 @@
-node_modules/
+# os
+.DS_Store
+Thumbs.db
+
+# editor files
 *~
 .idea/
+
+# build 
+*.log
+/build/
+/releases/
+/tmp/
+
+# hotkey-grid app user specific config
 config.hkg
 config.hkg.bak
+
+# dev dependencies
+node_modules
+bower_components

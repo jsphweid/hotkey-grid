@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <script src="vendor/electron_boilerplate/env_config.js"></script>
+
+        <!--script src="vendor/require.js"></script>
+        <script src="vendor/electron_boilerplate/context_menu.js"></script>
+        <script src="vendor/electron_boilerplate/external_links.js"></script>
+
+        <script>
+            requirejs(['app'], function (app) {});
+        </script-->
         <title>Hotkey Grid</title>
         <script>
           window.cl = console.log.bind(console);
@@ -17,6 +27,20 @@
           function puts(error, stdout, stderr) { sys.puts(stdout) }
           var exec = require('child_process').exec;
           var fs = require('fs');
+          var srcpath = function(path) {
+              var dirnameMinusCwd = __dirname.replace(process.cwd(), '');
+              var minusSlashes = dirnameMinusCwd.replace('/', '');
+              var nDirs = dirnameMinusCwd.length - minusSlashes.length;
+              for (var i = 0; i < nDirs; i++) {
+                path = '../' + path;
+              }
+            return path;
+        };
+          var abspath = function(path) {
+            return path;
+            // var slash = __dirname.split('/').length > __dirname.split('\\').length ? '/' : '\\';
+            // return __dirname + slash + path;
+          };
 
           // for opening files
           var remote = require('remote'); 
@@ -104,7 +128,11 @@
               <div class="col-xs-3">Name</div><div class="col-xs-9"><input id='keyNameInput' data-bind="value:keyName, valueUpdate:'afterkeydown'"/></div>
           </div>
           <div class="row">
-              <div class="col-xs-3">Icon</div><div class="col-xs-9"><input data-bind="value:icon, valueUpdate:'afterkeydown'"/></div>
+              <div class="col-xs-3">Icon</div>
+              <div class="col-xs-6">
+                <button class='btn btn-sm btn-warning full-width' data-bind="click: $root.getFilePathFor('icon'), text: $root.getFileName(icon()), attr : { title: icon }"></button>
+                <!-- <input data-bind="value:icon, valueUpdate:'afterkeydown'"/> -->
+              </div>
           </div>
           <div class="row">
               <div class="col-xs-3">Executor</div><div class="col-xs-9"><input data-bind="value:executor, valueUpdate:'afterkeydown'"/></div>
@@ -112,7 +140,7 @@
           <div class="row">
               <div class="col-xs-3">Script</div>
               <div class="col-xs-6">
-                <button class='btn btn-sm btn-warning full-width' data-bind="click: $root.getFilePath, text: $root.getFileName(script()), attr : { title: script }"></button>
+                <button class='btn btn-sm btn-warning full-width' data-bind="click: $root.getFilePathFor('script'), text: $root.getFileName(script()), attr : { title: script }"></button>
                 <!-- <input data-bind="value:script, valueUpdate:'afterkeydown'"/> -->
                 <!-- <input id="asdf" type='file' data-bind="value:script"/> -->
               </div>
@@ -186,7 +214,7 @@ var keyboard = [
     ['a', 's', 'd', 'f', 'g', 'h'],
     ['z', 'x', 'c', 'v', 'b', 'n']
 ];
-var MAX_TABS = 6;
+var MAX_TABS = 9;
 var DEFAULT_CONFIG_FILE_NAME = './default-config.hkg';
 var MY_CONFIG_FILE_NAME = './my-config.hkg';
 var CONFIG_FILE_NAME = './config.hkg';
@@ -218,7 +246,7 @@ function HostsViewModel(config) {
     };
     this.keyHtml = function(key, parent) {
         var icon = key.icon();
-        var keyHtml = icon ? '<img class="img-responsive" src="'+icon+'"></img>' : key.keyName();
+        var keyHtml = icon ? '<img class="img-responsive" src="'+srcpath(icon)+'"></img>' : key.keyName();
         if (vm.viewmode() && typeof parent !== 'undefined') {
           return keyHtml + '<br>(' + parent.key() + ')';
         } else {
@@ -235,24 +263,26 @@ function HostsViewModel(config) {
       vm.viewmode(!vm.viewmode());
     };
     // file path
-    this.getFilePath = function (key) {
-      var cwd = process.cwd();
-      var posix = cwd.indexOf('/') !== -1;
-      cwd += posix ? '/' : '\\';
-      var newPath = dialog.showOpenDialog({ defaultPath: cwd + key.script(), properties: [ 'openFile']});
-      if (typeof newPath !== 'undefined') {
-        if (newPath[0].indexOf(cwd) === -1) {
-          alert('You cannot choose a script that is not in this programs directory or sub-directory.');
-        } else {
-          key.script(newPath[0].replace(cwd, ''));
-        }
-      } else {
-        // noop - they did canceled so the key.script should stay the same
-      }
+    this.getFilePathFor = function (property) {
+        return function(key) {
+          var cwd = process.cwd();
+          var posix = cwd.indexOf('/') !== -1;
+          cwd += posix ? '/' : '\\';
+          var newPath = dialog.showOpenDialog({ defaultPath: cwd + key[property](), properties: [ 'openFile']});
+          if (typeof newPath !== 'undefined') {
+            if (newPath[0].indexOf(cwd) === -1) {
+              alert('You cannot choose a file that is not in this programs directory or sub-directory.');
+            } else {
+              key[property](newPath[0].replace(cwd, ''));
+            }
+          } else {
+            // noop - they did canceled so the key.script should stay the same
+          }
+      };
     };
     this.getFileName = function(path) {
       // var path = key.script();
-      if (path === '') return '(Click to set a script)';
+      if (path === '') return '(Click to locate a file)';
       var segs = path.split('/');
       if (segs.length > 1) {
         return segs.pop();
@@ -262,7 +292,7 @@ function HostsViewModel(config) {
     };
     // edit script
     this.editScript = function(key) {
-      var command = vm.config.defaultScriptEditor() + ' ' + key.script();
+      var command = vm.config.defaultScriptEditor() + ' ' + abspath(key.script());
       exec(command, function(e, stdout, stderr) {
                         if (stderr) { alert(stderr); }
                         vm.commandOutput(stdout);
@@ -393,7 +423,8 @@ function HostsViewModel(config) {
                       var row = selectedTab.rows()[r];
                       var key = row.cols()[c].keys()[0];
                       if (typeof key.executor === 'undefined' || typeof key.script === 'undefined') break;
-                      exec(key.executor() + ' ' + key.script(), function(e, stdout, stderr) {
+                      var keyscript = key.script();
+                      exec(key.executor() + ' ' + abspath(key.script()), function(e, stdout, stderr) {
                         if (stderr) { alert(stderr); }
                         vm.commandOutput(stdout);
                       });
@@ -489,12 +520,12 @@ var template = [
       },
       {
         label: 'Hide Electron',
-        accelerator: 'Command+H',
+        accelerator: 'CmdOrCtrl+H',
         selector: 'hide:'
       },
       {
         label: 'Hide Others',
-        accelerator: 'Command+Shift+H',
+        accelerator: 'CmdOrCtrl+Shift+H',
         selector: 'hideOtherApplications:'
       },
       {
@@ -506,7 +537,7 @@ var template = [
       },
       {
         label: 'Quit',
-        accelerator: 'Command+Q',
+        accelerator: 'CmdOrCtrl+Q',
         selector: 'terminate:'
       },
     ]
@@ -516,12 +547,12 @@ var template = [
     submenu: [
       {
         label: 'Undo',
-        accelerator: 'Command+Z',
+        accelerator: 'CmdOrCtrl+Z',
         selector: 'undo:'
       },
       {
         label: 'Redo',
-        accelerator: 'Shift+Command+Z',
+        accelerator: 'Shift+CmdOrCtrl+Z',
         selector: 'redo:'
       },
       {
@@ -529,22 +560,22 @@ var template = [
       },
       {
         label: 'Cut',
-        accelerator: 'Command+X',
+        accelerator: 'CmdOrCtrl+X',
         selector: 'cut:'
       },
       {
         label: 'Copy',
-        accelerator: 'Command+C',
+        accelerator: 'CmdOrCtrl+C',
         selector: 'copy:'
       },
       {
         label: 'Paste',
-        accelerator: 'Command+V',
+        accelerator: 'CmdOrCtrl+V',
         selector: 'paste:'
       },
       {
         label: 'Select All',
-        accelerator: 'Command+A',
+        accelerator: 'CmdOrCtrl+A',
         selector: 'selectAll:'
       }
     ]
@@ -554,12 +585,12 @@ var template = [
     submenu: [
       {
         label: 'Reload',
-        accelerator: 'Command+R',
+        accelerator: 'CmdOrCtrl+R',
         click: function() { remote.getCurrentWindow().reload(); }
       },
       {
         label: 'Toggle DevTools',
-        accelerator: 'Alt+Command+J',
+        accelerator: 'Alt+CmdOrCtrl+J',
         click: function() { remote.getCurrentWindow().toggleDevTools(); }
       },
     ]
@@ -569,12 +600,12 @@ var template = [
     submenu: [
       {
         label: 'Minimize',
-        accelerator: 'Command+M',
+        accelerator: 'CmdOrCtrl+M',
         selector: 'performMiniaturize:'
       },
       {
         label: 'Close',
-        accelerator: 'Command+W',
+        accelerator: 'CmdOrCtrl+W',
         selector: 'performClose:'
       },
       {
@@ -596,6 +627,5 @@ menu = Menu.buildFromTemplate(template);
 
 Menu.setApplicationMenu(menu);
 </script>
-
-    </body>
+</body>
 </html>

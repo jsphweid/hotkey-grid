@@ -6,10 +6,9 @@ Hotkey-grid is a speedy way to execute programs, command line scripts, and gui a
 
 ```
 git clone https://github.com/jsphweid/hotkey-grid.git
-npm install -g electron-prebuilt
-npm install
-
-electron .
+npm install       # downloads dependencies
+npm start         # starts app in debug mode, like `electron .`
+npm run release	  # makes installer for OS it is run on
 ```
 
 # Road Map
@@ -17,6 +16,7 @@ electron .
 ## Ready to work on 
 
 - package up electron as exe
+  - exec('open /usr/local/bin/sublime', function(error, stdout, stderr) { console.log(error); console.log(stdout); console.log(stderr); });
 - zip up electron + finale for finale people
 
 ## Lua and Finale

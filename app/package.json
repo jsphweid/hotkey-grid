@@ -1,0 +1,22 @@
+{
+  "name": "hotkey-grid",
+  "productName": "Hotkey Grid",
+  "identifier": "com.github.com/jsphweid/hotkey-grid",
+  "description": "A faster way to get stuff done.",
+  "version": "0.1.0",
+  "author": "Clay Weidinger <hotkey-grid@clayweidinger.com>",
+  "main": "main.js",
+  "config": {
+    "target": "development"
+  },
+  "dependencies": { 
+    "fs-jetpack": "^0.6.5",
+    
+    "bootstrap": "^3.3.4",
+    "jquery": "^2.1.4",
+    "jquery-ui": "^1.10.5",
+    "knockout": "^3.3.0",
+    "knockout-mapping": "^2.5.0",
+    "knockout-sortable": "^0.11.0"
+  }
+}

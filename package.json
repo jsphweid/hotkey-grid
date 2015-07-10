@@ -1,13 +1,27 @@
 {
-  "name": "grid-hotkeys",
-  "version": "0.1.0",
-  "main": "main.js",
-  "dependencies": {
-    "bootstrap": "^3.3.4",
-    "jquery": "^2.1.4",
-    "jquery-ui": "^1.10.5",
-    "knockout": "^3.3.0",
-    "knockout-mapping": "^2.5.0",
-    "knockout-sortable": "^0.11.0"
+  "devDependencies": {
+    "asar": "^0.7.2",
+    "electron-prebuilt": "^0.28.3",
+    "esperanto": "^0.7.2",
+    "fs-jetpack": "^0.6.5",
+    "gulp": "^3.9.0",
+    "gulp-less": "^3.0.3",
+    "gulp-util": "^3.0.6",
+    "q": "^1.4.1",
+    "tree-kill": "^0.1.1",
+    "vinyl-map": "^1.0.1",
+    "yargs": "^3.13.0"
+  },
+  "optionalDependencies": {
+    "appdmg": "^0.3.2",
+    "rcedit": "^0.3.0"
+  },
+  "scripts": {
+    "postinstall": "node ./tasks/app_npm_install",
+    "app-install": "node ./tasks/app_npm_install",
+    "build": "./node_modules/.bin/gulp build",
+    "release": "./node_modules/.bin/gulp release --env=production",
+    "start": "node ./tasks/start",
+    "test": "node ./tasks/start --env=test"
   }
 }
