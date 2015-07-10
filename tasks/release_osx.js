@@ -57,6 +57,9 @@ var finalize = function () {
     // Copy icon
     projectDir.copy('resources/osx/icon.icns', finalAppDir.path('Contents/Resources/icon.icns'));
 
+    // Hotkey-grid's modification
+    projectDir.copy('scripts', finalAppDir.path('Contents/Resources/scripts'));
+
     return Q();
 };
 

@@ -42,6 +42,10 @@ var finalize = function () {
 
     projectDir.copy('resources/windows/icon.ico', readyAppDir.path('icon.ico'));
 
+    // Hotkey-grid's modification
+    projectDir.copy('scripts', finalAppDir.path('scripts'));
+    projectDir.copy('AutoHotkey.exe', finalAppDir.path('AutoHotkey.exe'));
+
     // Replace Electron icon for your own.
     var rcedit = require('rcedit');
     rcedit(readyAppDir.path('electron.exe'), {

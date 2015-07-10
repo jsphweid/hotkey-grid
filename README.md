@@ -34,3 +34,25 @@ npm run release	  # makes installer for OS it is run on
 - switch keys when dragging one on top of another ??? is this even desirable?
 - possibly have a settings tab or file that contains "global variables" that affect functions (in Finale JW lua, for example the person's desired default page height/width for parts that will be used throughout various scripts)
 - have whatever's in the copy buffer modify the command -> like passing an arg to a script
+
+
+## Packaging
+
+### Mac
+process.cwd()
+"/"
+__dirname
+"/Applications/Hotkey Grid.app/Contents/Resources/app.asar"
+
+### Windows
+process.cwd();
+"C:\Program Files (x86)\Hotkey Grid"
+__dirname
+"C:\Program Files (x86)\Hotkey Grid\resources\app.asar"
+
+
+### npm start
+process.cwd()
+"/Users/clayweidinger/clay/git/hotkey-grid"
+__dirname
+"/Users/clayweidinger/clay/git/hotkey-grid/build"

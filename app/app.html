@@ -13,20 +13,51 @@
         </script-->
         <title>Hotkey Grid</title>
         <script>
-          window.cl = console.log.bind(console);
           $ = window.$ = window.jQuery = require('jquery');
           require('jquery-ui');
           require('bootstrap');
           var ko = require('knockout');
           require('knockout-mapping');
           require('knockout-sortable');
-          // var keys = require('clays-keys');
+
+          // quick console output functions
+          // window.cl = console.log.bind(console);
+          // var sys = require('sys');
+          // function puts(error, stdout, stderr) { sys.puts(stdout) }
 
           // file system node stuff
-          var sys = require('sys');
-          function puts(error, stdout, stderr) { sys.puts(stdout) }
           var exec = require('child_process').exec;
           var fs = require('fs');
+
+          // global directory jockeying to support different packaging and runtimes
+          var osSlash = __dirname.split('/').length > __dirname.split('\\').length ? '/' : '\\';
+          var dirnameArray = __dirname.split(osSlash);
+          dirnameArray.splice(-1);
+          var resourceDir = dirnameArray.join(osSlash);
+          process.chdir(resourceDir);
+
+          // ammend path so I can use most commandline tools
+          var os = require('os');
+            switch (os.platform()) {
+                case 'darwin':
+                    process.env.PATH += ':/usr/local/bin'
+                    break;
+                case 'linux':
+                    break;
+                case 'win32':
+                    break;
+            }
+
+          // make process.cwd() the same as resource directory
+            var srcpath = function(path) {
+              var dirnameMinusCwd = __dirname.replace(process.cwd(), '');
+              var minusSlashes = dirnameMinusCwd.replace('/', '');
+              var nDirs = dirnameMinusCwd.length - minusSlashes.length;
+              for (var i = 0; i < nDirs; i++) {
+                path = '../' + path;
+              }
+            return path;
+          };
           var srcpath = function(path) {
               var dirnameMinusCwd = __dirname.replace(process.cwd(), '');
               var minusSlashes = dirnameMinusCwd.replace('/', '');
@@ -35,10 +66,9 @@
                 path = '../' + path;
               }
             return path;
-        };
+          };
           var abspath = function(path) {
             return path;
-            // var slash = __dirname.split('/').length > __dirname.split('\\').length ? '/' : '\\';
             // return __dirname + slash + path;
           };
 
@@ -404,6 +434,7 @@ function HostsViewModel(config) {
     $(document).on('keydown', function() {
         if (document.activeElement.tagName === 'INPUT') return true;
         var keyStr = String.fromCharCode(event.which);
+        debugger;
         if (!isNaN(keyStr)) {
             var index = parseInt(keyStr, 10) - 1;
             var tabs = vm.config.tabs();
@@ -414,7 +445,7 @@ function HostsViewModel(config) {
             } else if (tabs.length < MAX_TABS) {
                 vm.addTab();
             }
-        } else {
+        } else if (!event.ctrlKey && !event.metaKey && !event.altKey) {
             var selectedTab = vm.selectedTab();
             if (typeof selectedTab === 'undefined') return;
             for (var r = 0; r < keyboard.length; r++) {
@@ -450,7 +481,7 @@ if (fs.existsSync(CONFIG_FILE_NAME)) {
     fs.writeFile(CONFIG_FILE_NAME + '.bak', configJson, function(err) {}); // save backup file
     config = JSON.parse(configJson);
 } else {
-  config = {"defaultExecutor":"autohotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts/win-ahk/makemsgbox.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts/mac/newtab.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icron","icon":"pic.png","executor":"open pic.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
+  config = {"defaultExecutor":"autohotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts/win-ahk/makemsgbox.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts/mac/newtab.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icon","icon":"scripts/mac/pic.png","executor":"open scripts/mac/pic.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
     // config = {
     //     // defaultExecutor : 'AutoHotKey.exe',
     //     defaultExecutor : 'osascript',

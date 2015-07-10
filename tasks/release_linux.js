@@ -56,6 +56,9 @@ var finalize = function () {
     // Copy icon
     projectDir.copy('resources/icon.png', readyAppDir.path('icon.png'));
 
+    // Hotkey-grid's modification
+    projectDir.copy('scripts', finalAppDir.path('scripts'));
+
     return Q();
 };
 
