@@ -64,7 +64,7 @@
     <ul class="nav nav-tabs" id='numberedTabs' role="tablist" data-bind="sortable: config.tabs">
         <li role="presentation" data-bind="css: { active: $root.selectedTab() === $data }">
             <a href="#" role="tab" data-toggle="tab" 
-            data-bind="text: tabName() + ' (' + ($index() + 1) + ')',
+            data-bind="text: $root.tabHtml($data, $index),
                        attr: { href: '#' + tabName() },
                        click: $root.selectTab
                        "></a>
@@ -76,11 +76,11 @@
         <div role="tabpanel" class="tab-pane" data-bind="attr: {id: tabName}, css: { active: $root.selectedTab() === $data }">
             <div class="" data-bind="foreach: rows">
                 <div class="" data-bind="foreach: cols">
-                    <div class="col-xs-2 keySpace" data-bind="sortable: { data: keys, allowDrop : $root.isFull }">
+                    <div class="col-xs-2 keySpace" data-bind="click : $root.addBoundKey, sortable: { data: keys, allowDrop : $root.isFull }">
                         <div class="btn btn-primary btn-key"
                             data-bind="click: $root.selectedKey,
                             css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey() !== $data ? 'btn-primary' : 'btn-danger'">
-                            <div class="key-text" data-bind="html: $root.keyHtml($data) + '<br>(' + $parent.key() + ')'"></div>
+                            <div class="key-text" data-bind="html: $root.keyHtml($data, $parent)"></div>
                         </div>
                     </div>
                 </div>
@@ -95,6 +95,8 @@
     <div class="col-xs-2">
         <button class="btn btn-success full-width" data-bind='click: $root.switchEditMode,
                        html: $root.editmode() ? "Use Mode" : "Edit Mode"'></button>
+        <button class="btn btn-success full-width" data-bind='click: $root.switchViewMode,
+                       html: $root.viewmode() ? "Hide Hotkeys" : "Show Hotkeys"'></button>
     </div>
     <div class="col-xs-5" data-bind="visible: $root.editmode()">
         <div data-bind="with: selectedKey">
@@ -134,7 +136,7 @@
                 <h4>Loose Keys</h4>
             </div>
             <div class="col-xs-6">
-                <button class="btn btn-primary full-width" data-bind="click : $root.addKey">Add</button>
+                <button class="btn btn-primary full-width" data-bind="click : $root.addLooseKey">Add</button>
             </div>
         </div>
     </div>
@@ -211,19 +213,26 @@ function HostsViewModel(config) {
     this.config = ko.mapping.fromJS(config);
 
     // add computed fields to Keys
-    this.keyHtml = function(key) {
+    this.tabHtml = function(tab, index) {
+      return vm.viewmode() ? tab.tabName() + ' (' + (index() + 1) + ')' : tab.tabName()
+    };
+    this.keyHtml = function(key, parent) {
         var icon = key.icon();
-        if (icon) {
-            return '<img class="img-responsive" src="'+icon+'"></img>';
+        var keyHtml = icon ? '<img class="img-responsive" src="'+icon+'"></img>' : key.keyName();
+        if (vm.viewmode() && typeof parent !== 'undefined') {
+          return keyHtml + '<br>(' + parent.key() + ')';
         } else {
-            return key.keyName();
+          return keyHtml;
         }
     };
     // edit v. use mode
     this.editmode = ko.observable(true);
     this.switchEditMode = function() {
-      //$root.editmode(!$root.editmode())
       vm.editmode(!vm.editmode());
+    };
+    this.viewmode = ko.observable(true);
+    this.switchViewMode = function() {
+      vm.viewmode(!vm.viewmode());
     };
     // file path
     this.getFilePath = function (key) {
@@ -231,8 +240,15 @@ function HostsViewModel(config) {
       var posix = cwd.indexOf('/') !== -1;
       cwd += posix ? '/' : '\\';
       var newPath = dialog.showOpenDialog({ defaultPath: cwd + key.script(), properties: [ 'openFile']});
-      var newRelativePath = (typeof newPath === 'undefined') ? '' : newPath[0].replace(cwd, '');
-      key.script(newRelativePath);
+      if (typeof newPath !== 'undefined') {
+        if (newPath[0].indexOf(cwd) === -1) {
+          alert('You cannot choose a script that is not in this programs directory or sub-directory.');
+        } else {
+          key.script(newPath[0].replace(cwd, ''));
+        }
+      } else {
+        // noop - they did canceled so the key.script should stay the same
+      }
     };
     this.getFileName = function(path) {
       // var path = key.script();
@@ -246,7 +262,6 @@ function HostsViewModel(config) {
     };
     // edit script
     this.editScript = function(key) {
-      debugger;
       var command = vm.config.defaultScriptEditor() + ' ' + key.script();
       exec(command, function(e, stdout, stderr) {
                         if (stderr) { alert(stderr); }
@@ -331,13 +346,23 @@ function HostsViewModel(config) {
         }
         vm.selectedKey(undefined);
     };
-    this.addKey = function() {
-        var key = ko.mapping.fromJS({
+    this.newKey = function() {
+      return ko.mapping.fromJS({
             keyName : 'New Key',
             icon : '',
             executor : vm.config.defaultExecutor,
             script : ''
         });
+    };
+    this.addBoundKey = function(col) {
+      if (!col.keys().length) {
+        var key = vm.newKey();
+        col.keys.push(key);
+        vm.selectedKey(key);
+      }
+    };
+    this.addLooseKey = function() {
+      var key = vm.newKey();
         vm.config.looseKeys.push(key);
         vm.selectedKey(key);
         setTimeout(function() {
@@ -367,6 +392,7 @@ function HostsViewModel(config) {
                   if (keyboard[r][c].toUpperCase().charCodeAt() == event.which) {
                       var row = selectedTab.rows()[r];
                       var key = row.cols()[c].keys()[0];
+                      if (typeof key.executor === 'undefined' || typeof key.script === 'undefined') break;
                       exec(key.executor() + ' ' + key.script(), function(e, stdout, stderr) {
                         if (stderr) { alert(stderr); }
                         vm.commandOutput(stdout);

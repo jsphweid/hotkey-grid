@@ -16,16 +16,8 @@ electron .
 
 ## Ready to work on 
 
-- pro mode ( show/hides hotkeys)
-- find script with file browser AND/OR type stuff in
-  - file/name
-  - find - $('#asdf')[0].files[0].path
-  - edit
-
 - package up electron as exe
 - zip up electron + finale for finale people
-
-- click in empty keyspace makes a new key right there
 
 ## Lua and Finale
 
