@@ -54,9 +54,7 @@ var runApp = function () {
 
     app.on('close', function (code) {
         // User closed the app. Kill the host process.
-        console.log("App Close Event");
         kill(watch.pid, 'SIGKILL', function () {
-            console.log("SIGKILL Event");
             process.exit();
         });
     });

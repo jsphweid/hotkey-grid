@@ -1,0 +1,35 @@
+    // config = {
+    //     // defaultExecutor : 'AutoHotKey.exe',
+    //     defaultExecutor : 'osascript',
+    //     defaultScriptEditor : 'sublime',
+    //     looseKeys : [],
+    //     tabs : [ 
+    //         {
+    //             tabName : 'chrome',
+    //             rows : [
+    //                 {cols : [
+    //                     {keys : [{
+    //                         keyName : 'New Tab',
+    //                         icon : '',
+    //                         executor : 'osascript',
+    //                         script : 'newtab.ascript'
+    //                     }]},
+    //                     {keys : [{
+    //                         keyName : 'New Window',
+    //                         icon : '',
+    //                         executor : 'osascript',
+    //                         script : 'newwindow.ascript'
+    //                     }]}, // key
+    //                 ]},// bottom row
+    //             ] // rows
+    //         }, // tab
+    //         {
+    //             tabName : 'finale',
+    //             rows : []
+
+    //         }
+    //     ] // tabs
+    // };
+    for (var t = 0; t < config.tabs.length; t++) {
+        fillInMissingKeysOnTab(config.tabs[t]);
+    }

@@ -8,14 +8,21 @@ Hotkey-grid is a speedy way to execute programs, command line scripts, and gui a
 git clone https://github.com/jsphweid/hotkey-grid.git
 npm install       # downloads dependencies
 npm start         # starts app in debug mode, like `electron .`
-npm run release	  # makes installer for OS it is run on
+npm run release	  # makes installer for OS it is run on, see below for special windows packaging instructions
 ```
+
+## Special Packaging instructions for Windows
+As installer [NSIS](http://nsis.sourceforge.net/Main_Page) is used. You have to install it (version 3.0), and add NSIS folder to PATH in Environment Variables, so it is reachable to scripts in this project (path should look something like `C:/Program Files (x86)/NSIS`).
 
 # Road Map
 
 ## Ready to work on 
 
 - package up electron as exe
+  - https://github.com/atom/electron/blob/master/docs/tutorial/application-distribution.md
+  - https://github.com/atom/electron/blob/master/docs/tutorial/application-packaging.md
+  - https://github.com/maxogden/electron-packager
+  - https://github.com/szwacz/electron-boilerplate
   - exec('open /usr/local/bin/sublime', function(error, stdout, stderr) { console.log(error); console.log(stdout); console.log(stderr); });
 - zip up electron + finale for finale people
 
@@ -56,3 +63,7 @@ process.cwd()
 "/Users/clayweidinger/clay/git/hotkey-grid"
 __dirname
 "/Users/clayweidinger/clay/git/hotkey-grid/build"
+
+# Thanks to
+Electron
+Electron Boilerplate

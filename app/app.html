@@ -29,47 +29,39 @@
           var exec = require('child_process').exec;
           var fs = require('fs');
 
-          // global directory jockeying to support different packaging and runtimes
-          var osSlash = __dirname.split('/').length > __dirname.split('\\').length ? '/' : '\\';
+          // os specific configuration
+          var osSlash;
+          var os = require('os');
+            switch (os.platform()) {
+                case 'darwin':
+                    // amend path so I can use most commandline tools
+                    process.env.PATH += ':/usr/local/bin'
+                    osSlash = '/';
+                    break;
+                case 'linux':
+                    osSlash = '/';
+                    break;
+                case 'win32':
+                    osSlash = '\\';
+                    break;
+            }
+
+            // make nodejs's execution directory consistent for relative path scripts
           var dirnameArray = __dirname.split(osSlash);
           dirnameArray.splice(-1);
           var resourceDir = dirnameArray.join(osSlash);
           process.chdir(resourceDir);
 
-          // ammend path so I can use most commandline tools
-          var os = require('os');
-            switch (os.platform()) {
-                case 'darwin':
-                    process.env.PATH += ':/usr/local/bin'
-                    break;
-                case 'linux':
-                    break;
-                case 'win32':
-                    break;
+            // make paths work
+          var isAbsolutePath = function(path) {
+            if (os.platform == 'win32') {
+              return path.indexOf(':\\') !== -1 || path.indexOf('\\\\') !== -1;
+            } else {
+              return path.indexOf('/') === 0;
             }
-
-          // make process.cwd() the same as resource directory
-            var srcpath = function(path) {
-              var dirnameMinusCwd = __dirname.replace(process.cwd(), '');
-              var minusSlashes = dirnameMinusCwd.replace('/', '');
-              var nDirs = dirnameMinusCwd.length - minusSlashes.length;
-              for (var i = 0; i < nDirs; i++) {
-                path = '../' + path;
-              }
-            return path;
           };
           var srcpath = function(path) {
-              var dirnameMinusCwd = __dirname.replace(process.cwd(), '');
-              var minusSlashes = dirnameMinusCwd.replace('/', '');
-              var nDirs = dirnameMinusCwd.length - minusSlashes.length;
-              for (var i = 0; i < nDirs; i++) {
-                path = '../' + path;
-              }
-            return path;
-          };
-          var abspath = function(path) {
-            return path;
-            // return __dirname + slash + path;
+            return isAbsolutePath(path) ? path : process.cwd() + osSlash + path;
           };
 
           // for opening files
@@ -278,7 +270,7 @@ function HostsViewModel(config) {
         var icon = key.icon();
         var keyHtml = icon ? '<img class="img-responsive" src="'+srcpath(icon)+'"></img>' : key.keyName();
         if (vm.viewmode() && typeof parent !== 'undefined') {
-          return keyHtml + '<br>(' + parent.key() + ')';
+          return keyHtml + (icon ? '' : '<br>') + '(' + parent.key() + ')';
         } else {
           return keyHtml;
         }
@@ -296,33 +288,30 @@ function HostsViewModel(config) {
     this.getFilePathFor = function (property) {
         return function(key) {
           var cwd = process.cwd();
-          var posix = cwd.indexOf('/') !== -1;
-          cwd += posix ? '/' : '\\';
-          var newPath = dialog.showOpenDialog({ defaultPath: cwd + key[property](), properties: [ 'openFile']});
+          cwd += osSlash;
+          var oldPath = key[property]();
+          oldPath = isAbsolutePath(oldPath) ? oldPath : cwd + oldPath;
+
+          var newPath = dialog.showOpenDialog({ defaultPath: oldPath, properties: [ 'openFile']});
           if (typeof newPath !== 'undefined') {
-            if (newPath[0].indexOf(cwd) === -1) {
-              alert('You cannot choose a file that is not in this programs directory or sub-directory.');
+            newPath = newPath[0]; // first file
+            if (newPath.indexOf(cwd) !== -1) { // newPath contains cwd
+              key[property](newPath.replace(cwd, '')); // store relative path 
             } else {
-              key[property](newPath[0].replace(cwd, ''));
+              key[property](newPath); // store absolute path
             }
           } else {
-            // noop - they did canceled so the key.script should stay the same
+            // noop - they did canceled so the key[property] should stay the same
           }
       };
     };
     this.getFileName = function(path) {
-      // var path = key.script();
       if (path === '') return '(Click to locate a file)';
-      var segs = path.split('/');
-      if (segs.length > 1) {
-        return segs.pop();
-      } else {
-        return path.split('\\').pop();
-      }
+      return path.split(osSlash).pop();
     };
     // edit script
     this.editScript = function(key) {
-      var command = vm.config.defaultScriptEditor() + ' ' + abspath(key.script());
+      var command = vm.config.defaultScriptEditor() + ' ' + key.script();
       exec(command, function(e, stdout, stderr) {
                         if (stderr) { alert(stderr); }
                         vm.commandOutput(stdout);
@@ -410,7 +399,7 @@ function HostsViewModel(config) {
       return ko.mapping.fromJS({
             keyName : 'New Key',
             icon : '',
-            executor : vm.config.defaultExecutor,
+            executor : vm.config.defaultExecutor(),
             script : ''
         });
     };
@@ -434,7 +423,6 @@ function HostsViewModel(config) {
     $(document).on('keydown', function() {
         if (document.activeElement.tagName === 'INPUT') return true;
         var keyStr = String.fromCharCode(event.which);
-        debugger;
         if (!isNaN(keyStr)) {
             var index = parseInt(keyStr, 10) - 1;
             var tabs = vm.config.tabs();
@@ -453,9 +441,10 @@ function HostsViewModel(config) {
                   if (keyboard[r][c].toUpperCase().charCodeAt() == event.which) {
                       var row = selectedTab.rows()[r];
                       var key = row.cols()[c].keys()[0];
-                      if (typeof key.executor === 'undefined' || typeof key.script === 'undefined') break;
+                      if (!key || !key.executor) break;
                       var keyscript = key.script();
-                      exec(key.executor() + ' ' + abspath(key.script()), function(e, stdout, stderr) {
+                      var command = key.executor() + ' ' + key.script();
+                      exec(command, function(e, stdout, stderr) {
                         if (stderr) { alert(stderr); }
                         vm.commandOutput(stdout);
                       });
@@ -481,42 +470,31 @@ if (fs.existsSync(CONFIG_FILE_NAME)) {
     fs.writeFile(CONFIG_FILE_NAME + '.bak', configJson, function(err) {}); // save backup file
     config = JSON.parse(configJson);
 } else {
-  config = {"defaultExecutor":"autohotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts/win-ahk/makemsgbox.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts/mac/newtab.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icon","icon":"scripts/mac/pic.png","executor":"open scripts/mac/pic.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
-    // config = {
-    //     // defaultExecutor : 'AutoHotKey.exe',
-    //     defaultExecutor : 'osascript',
-    //     defaultScriptEditor : 'sublime',
-    //     looseKeys : [],
-    //     tabs : [ 
-    //         {
-    //             tabName : 'chrome',
-    //             rows : [
-    //                 {cols : [
-    //                     {keys : [{
-    //                         keyName : 'New Tab',
-    //                         icon : '',
-    //                         executor : 'osascript',
-    //                         script : 'newtab.ascript'
-    //                     }]},
-    //                     {keys : [{
-    //                         keyName : 'New Window',
-    //                         icon : '',
-    //                         executor : 'osascript',
-    //                         script : 'newwindow.ascript'
-    //                     }]}, // key
-    //                 ]},// bottom row
-    //             ] // rows
-    //         }, // tab
-    //         {
-    //             tabName : 'finale',
-    //             rows : []
-
-    //         }
-    //     ] // tabs
-    // };
-    for (var t = 0; t < config.tabs.length; t++) {
-        fillInMissingKeysOnTab(config.tabs[t]);
-    }
+  config = {"defaultExecutor":"AutoHotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts/mac/newtab.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icon","icon":"scripts/mac/pic.png","executor":"open scripts/mac/pic.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts/win-ahk/makemsgbox.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[{"keyName":"ls","icon":"","executor":"AutoHotkey.exe","script":""}]},{"key":"w","keys":[{"keyName":"Zenity","icon":"","executor":"zenity --info --text=\"Calculation complete\"","script":""}]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
+    // move tabs around depending on which os you're using
+    var tabs = {};
+    tabs[config.tabs[0].tabName] = config.tabs[0];
+    tabs[config.tabs[1].tabName] = config.tabs[1];
+    tabs[config.tabs[2].tabName] = config.tabs[2];
+    switch (os.platform()) {
+      case 'darwin':
+          config.defaultExecutor = 'osascript';
+          config.tabs[0] = tabs.Mac;
+          config.tabs[1] = tabs.Windows;
+          config.tabs[2] = tabs.Linux;
+          break;
+      case 'linux':
+          config.tabs[0] = tabs.Linux;
+          config.tabs[1] = tabs.Mac;
+          config.tabs[2] = tabs.Windows;
+          break;
+      case 'win32':
+          config.defaultExecutor = 'AutoHotkey.exe';
+          config.tabs[0] = tabs.Windows;
+          config.tabs[1] = tabs.Mac;
+          config.tabs[2] = tabs.Linux;
+          break;
+  }
 }
 var vm = new HostsViewModel(config);
 ko.bindingHandlers.sortable.beforeMove = vm.verifyMove;
