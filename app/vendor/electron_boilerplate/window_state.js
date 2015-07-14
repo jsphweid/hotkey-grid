@@ -11,6 +11,7 @@ module.exports = function (name, defaults) {
 
     var userDataDir = jetpack.cwd(app.getPath('userData'));
     var stateStoreFile = 'window-state-' + name +'.json'
+    console.log(app.getPath('userData') + '/' + stateStoreFile);
 
     var state = userDataDir.read(stateStoreFile, 'json') || {
         width: defaults.width,

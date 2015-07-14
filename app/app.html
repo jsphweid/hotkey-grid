@@ -63,6 +63,9 @@
           var srcpath = function(path) {
             return isAbsolutePath(path) ? path : process.cwd() + osSlash + path;
           };
+          var escapeSpaces = function(path) {
+            return path.replace(new RegExp(' ', 'g'), '\\ ');
+          };
 
           // for opening files
           var remote = require('remote'); 
@@ -124,7 +127,7 @@
                 <div class="" data-bind="foreach: cols">
                     <div class="col-xs-2 keySpace" data-bind="click : $root.addBoundKey, sortable: { data: keys, allowDrop : $root.isFull }">
                         <div class="btn btn-primary btn-key"
-                            data-bind="click: $root.selectedKey,
+                            data-bind="click: $root.keyClick,
                             css : typeof $root.selectedKey() === 'undefined' || $root.selectedKey() !== $data ? 'btn-primary' : 'btn-danger'">
                             <div class="key-text" data-bind="html: $root.keyHtml($data, $parent)"></div>
                         </div>
@@ -311,7 +314,7 @@ function HostsViewModel(config) {
     };
     // edit script
     this.editScript = function(key) {
-      var command = vm.config.defaultScriptEditor() + ' ' + key.script();
+      var command = escapeSpaces(vm.config.defaultScriptEditor()) + ' ' + escapeSpaces(key.script());
       exec(command, function(e, stdout, stderr) {
                         if (stderr) { alert(stderr); }
                         vm.commandOutput(stdout);
@@ -419,6 +422,22 @@ function HostsViewModel(config) {
         });
     };
 
+    this.keyClick = function(key) {
+      if (vm.editmode()) {
+        vm.selectedKey(key);
+      } else {
+        vm.executeKey(key);
+      }
+    };
+    this.executeKey = function(key) {
+      var keyscript = key.script();
+      var command = escapeSpaces(key.executor()) + ' ' + escapeSpaces(key.script());
+
+      exec(command, function(e, stdout, stderr) {
+        if (stderr) { alert(stderr); }
+        vm.commandOutput(stdout);
+      });
+    }
     // make keydown's activate tabs and keys
     $(document).on('keydown', function() {
         if (document.activeElement.tagName === 'INPUT') return true;
@@ -442,12 +461,7 @@ function HostsViewModel(config) {
                       var row = selectedTab.rows()[r];
                       var key = row.cols()[c].keys()[0];
                       if (!key || !key.executor) break;
-                      var keyscript = key.script();
-                      var command = key.executor() + ' ' + key.script();
-                      exec(command, function(e, stdout, stderr) {
-                        if (stderr) { alert(stderr); }
-                        vm.commandOutput(stdout);
-                      });
+                      vm.executeKey(key);
                       break;
                   }
               }
