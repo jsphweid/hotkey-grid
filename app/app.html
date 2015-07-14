@@ -45,6 +45,13 @@
                     osSlash = '\\';
                     break;
             }
+			function correctSlashes(path) {
+			  if (os.platform() == 'win32') {
+			    return path.replace(new RegExp('/', 'g'), '\\');
+		      } else {
+			    return path.replace(new RegExp('\\', 'g'), '/');
+			  }
+			}
 
             // make nodejs's execution directory consistent for relative path scripts
           var dirnameArray = __dirname.split(osSlash);
@@ -54,7 +61,7 @@
 
             // make paths work
           var isAbsolutePath = function(path) {
-            if (os.platform == 'win32') {
+            if (os.platform() == 'win32') {
               return path.indexOf(':\\') !== -1 || path.indexOf('\\\\') !== -1;
             } else {
               return path.indexOf('/') === 0;
@@ -64,7 +71,11 @@
             return isAbsolutePath(path) ? path : process.cwd() + osSlash + path;
           };
           var escapeSpaces = function(path) {
-            return path.replace(new RegExp(' ', 'g'), '\\ ');
+			  if (os.platform() == 'win32') {
+			    return '"' + path + '"';
+		      } else {
+				return path.replace(new RegExp(' ', 'g'), '\\ ');
+			  }
           };
 
           // for opening files
@@ -292,17 +303,13 @@ function HostsViewModel(config) {
         return function(key) {
           var cwd = process.cwd();
           cwd += osSlash;
-          var oldPath = key[property]();
+          var oldPath = correctSlashes(key[property]());
           oldPath = isAbsolutePath(oldPath) ? oldPath : cwd + oldPath;
 
           var newPath = dialog.showOpenDialog({ defaultPath: oldPath, properties: [ 'openFile']});
           if (typeof newPath !== 'undefined') {
             newPath = newPath[0]; // first file
-            if (newPath.indexOf(cwd) !== -1) { // newPath contains cwd
-              key[property](newPath.replace(cwd, '')); // store relative path 
-            } else {
-              key[property](newPath); // store absolute path
-            }
+            key[property](newPath.toLowerCase().replace(cwd.toLowerCase(), '')); // store relative path if I can
           } else {
             // noop - they did canceled so the key[property] should stay the same
           }
@@ -484,7 +491,7 @@ if (fs.existsSync(CONFIG_FILE_NAME)) {
     fs.writeFile(CONFIG_FILE_NAME + '.bak', configJson, function(err) {}); // save backup file
     config = JSON.parse(configJson);
 } else {
-  config = {"defaultExecutor":"AutoHotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts/mac/newtab.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icon","icon":"scripts/mac/pic.png","executor":"open scripts/mac/pic.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts/win-ahk/makemsgbox.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[{"keyName":"ls","icon":"","executor":"AutoHotkey.exe","script":""}]},{"key":"w","keys":[{"keyName":"Zenity","icon":"","executor":"zenity --info --text=\"Calculation complete\"","script":""}]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
+  config = {"defaultExecutor":"AutoHotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts\\win-ahk\\make msg box.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts\\mac\\new tab in chrome.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icon","icon":"scripts\\mac\\pic with space.png","executor":"open scripts/mac/pic\\ with\\ space.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[{"keyName":"ls","icon":"","executor":"AutoHotkey.exe","script":""}]},{"key":"w","keys":[{"keyName":"Zenity","icon":"","executor":"zenity --info --text=\"Calculation complete\"","script":""}]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
     // move tabs around depending on which os you're using
     var tabs = {};
     tabs[config.tabs[0].tabName] = config.tabs[0];

@@ -39,11 +39,13 @@ app.on('ready', function() {
 
   mainWindow.loadUrl('file://' + __dirname + '/app.html');
 
+  mainWindow.on('close', function() {
+    mainWindowState.saveState(mainWindow);
+  });
   mainWindow.on('closed', function() {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindowState.saveState(mainWindow);
     mainWindow = null;
   });
 });
