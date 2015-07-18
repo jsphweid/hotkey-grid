@@ -119,8 +119,12 @@
       .full-width {
           width: 100%;
       }
+      .pad-bot {
+        padding-bottom:8px;
+      }
     </style>
-<div classs="" role="tabpanel">
+<div classs="row" role="tabpanel">
+  <div class="col-xs-12">
     <ul class="nav nav-tabs" id='numberedTabs' role="tablist" data-bind="sortable: config.tabs">
         <li role="presentation" data-bind="css: { active: $root.selectedTab() === $data }">
             <a href="#" role="tab" data-toggle="tab" 
@@ -134,7 +138,7 @@
     <!-- Tab panes -->
     <div class="tab-content" data-bind="sortable: config.tabs">
         <div role="tabpanel" class="tab-pane" data-bind="attr: {id: tabName}, css: { active: $root.selectedTab() === $data }">
-            <div class="" data-bind="foreach: rows">
+            <div class="row" data-bind="foreach: rows">
                 <div class="" data-bind="foreach: cols">
                     <div class="col-xs-2 keySpace" data-bind="click : $root.addBoundKey, sortable: { data: keys, allowDrop : $root.isFull }">
                         <div class="btn btn-primary btn-key"
@@ -147,33 +151,53 @@
             </div>
         </div>
     </div>
-
+  </div>
 </div>
 
-<br>
+<div class="row col-xs-12">&nbsp;</div>  
 <div class="row">
     <div class="col-xs-2">
-        <button class="btn btn-success full-width" data-bind='click: $root.switchEditMode,
+        <div class="full-width pad-bot">
+          <button class="btn btn-success full-width" data-bind='click: $root.switchEditMode,
                        html: $root.editmode() ? "Use Mode" : "Edit Mode"'></button>
-        <button class="btn btn-success full-width" data-bind='click: $root.switchViewMode,
-                       html: $root.viewmode() ? "Hide Hotkeys" : "Show Hotkeys"'></button>
+        </div>
+        <div class="full-width pad-bot">
+          <button class="btn btn-success full-width " data-bind='click: $root.switchViewMode,
+                       html: $root.viewmode() ? "Hide Hotkeys Reminders" : "Show Hotkeys Reminders"'></button>
+        </div>
+        <div data-bind="visible: $root.editmode()">
+          <div class="row col-xs-12">
+            Default Executor
+          </div>
+          <div class="row col-xs-12">
+            <input id='tabNameInput' data-bind="value:config.defaultExecutor, valueUpdate:'afterkeydown'"/>`
+          </div>
+
+          <div class="row col-xs-12">&nbsp;</div>
+          <div class="row col-xs-12">
+            Default Script Editor
+          </div>
+          <div class="row col-xs-12">
+            <input id='tabNameInput' data-bind="value:config.defaultScriptEditor, valueUpdate:'afterkeydown'"/>`
+          </div>
+        </div>
     </div>
     <div class="col-xs-5" data-bind="visible: $root.editmode()">
         <div data-bind="with: selectedKey">
-          <div class="row">
-              <div class="col-xs-3">Name</div><div class="col-xs-9"><input id='keyNameInput' data-bind="value:keyName, valueUpdate:'afterkeydown'"/></div>
+          <div class="row pad-bot">
+              <div class="col-xs-3">Name</div><div class="col-xs-6"><input class="full-width" id='keyNameInput' data-bind="value:keyName, valueUpdate:'afterkeydown'"/></div>
           </div>
-          <div class="row">
+          <div class="row pad-bot">
               <div class="col-xs-3">Icon</div>
               <div class="col-xs-6">
                 <button class='btn btn-sm btn-warning full-width' data-bind="click: $root.getFilePathFor('icon'), text: $root.getFileName(icon()), attr : { title: icon }"></button>
                 <!-- <input data-bind="value:icon, valueUpdate:'afterkeydown'"/> -->
               </div>
           </div>
-          <div class="row">
-              <div class="col-xs-3">Executor</div><div class="col-xs-9"><input data-bind="value:executor, valueUpdate:'afterkeydown'"/></div>
+          <div class="row pad-bot">
+              <div class="col-xs-3">Executor</div><div class="col-xs-6"><input class='full-width' data-bind="value:executor, valueUpdate:'afterkeydown'"/></div>
           </div>
-          <div class="row">
+          <div class="row pad-bot">
               <div class="col-xs-3">Script</div>
               <div class="col-xs-6">
                 <button class='btn btn-sm btn-warning full-width' data-bind="click: $root.getFilePathFor('script'), text: $root.getFileName(script()), attr : { title: script }"></button>
@@ -182,13 +206,15 @@
               </div>
               <div class="col-xs-3"><button class='btn btn-sm btn-success full-width' data-bind="enable:script, click: $root.editScript ">Edit</button></div>
           </div>
-          <div class="row">
+          <div class="row pad-botss">
               <!-- <button class="btn btn-success col-xs-6" data-bind='click: $root.unfocusKey'>Done</button> -->
-              <button class="btn btn-danger col-xs-12" data-bind='click: $root.deleteKey'>Delete</button>
+              <div class="col-xs-offset-3 col-xs-6">
+                <button class="btn btn-danger " data-bind='click: $root.deleteKey'>Delete Key</button>
+              </div>
           </div>
         </div>
     </div>
-    <div class="col-xs-5" data-bind="visible: $root.editmode()">
+    <div class="col-xs-3" data-bind="visible: $root.editmode()">
         <div class="looseKeyBox" data-bind="sortable: config.looseKeys">
             <div class="btn btn-primary" 
             data-bind=" html: $root.keyHtml($data),
@@ -200,41 +226,32 @@
                 <h4>Loose Keys</h4>
             </div>
             <div class="col-xs-6">
-                <button class="btn btn-primary full-width" data-bind="click : $root.addLooseKey">Add</button>
+                <button class="btn btn-primary full-width" data-bind="click : $root.addLooseKey">Make New Key</button>
             </div>
         </div>
     </div>
-</div>
-<div class="row" data-bind="visible: $root.editmode()">
     <div class="col-xs-2">
-        <button class="btn btn-success full-width" data-bind="click : $root.addTab">Add Tab</button>
-    </div>
-    <div class="col-xs-5">
-        <div data-bind="with: selectedTab">
-          <div class="row">
-              <div class="col-xs-3">Tab Name</div>
-              <div class="col-xs-6">
-                <input id='tabNameInput' data-bind="value:tabName, valueUpdate:'afterkeydown'"/>`
-              </div>
-              <button class="btn btn-danger col-xs-3" data-bind="click : $root.deleteTab">Delete</button>
+      <div data-bind="visible: $root.editmode()">
+          <div class="row col-xs-12 pad-bot">
+              <button class="btn btn-success full-width" data-bind="click : $root.addTab">Add Tab</button>
           </div>
-        </div>
+                 <div class="row col-xs-12">&nbsp;</div>
+              <div data-bind="with: selectedTab">
+                <div class="row col-xs-12 pad-bot">
+                   Active Tab Name
+                 </div>
+                <div class="row col-xs-12 pad-bot">
+                      <input class='full-width' id='tabNameInput' data-bind="value:tabName, valueUpdate:'afterkeydown'"/>
+                    </div>
+                <div class="row col-xs-12 pad-bot">
+                    <button class="btn btn-danger full-width" data-bind="click : $root.deleteTab">Delete Active Tab</button>
+                </div>
+              </div>
+          </div>
+      </div>
     </div>
 </div>
-<div class="row" data-bind="visible: $root.editmode()">
-  <div class="col-xs-3">
-    Default Executor
-  </div>
-  <div class="col-xs-3">
-    <input id='tabNameInput' data-bind="value:config.defaultExecutor, valueUpdate:'afterkeydown'"/>`
-  </div>
-  <div class="col-xs-3">
-    Default Script Editor
-  </div>
-  <div class="col-xs-3">
-    <input id='tabNameInput' data-bind="value:config.defaultScriptEditor, valueUpdate:'afterkeydown'"/>`
-  </div>
-</div>
+
 <div class="row">
   <div class="col-xs-3">
     Command Output
@@ -282,9 +299,9 @@ function HostsViewModel(config) {
     };
     this.keyHtml = function(key, parent) {
         var icon = key.icon();
-        var keyHtml = icon ? '<img class="img-responsive" src="'+srcpath(icon)+'"></img>' : key.keyName();
+        var keyHtml = icon ? '<img class="img-responsive" style="display:inline;" src="'+srcpath(icon)+'"></img>' : key.keyName();
         if (vm.viewmode() && typeof parent !== 'undefined') {
-          return keyHtml + (icon ? '' : '<br>') + '(' + parent.key() + ')';
+          return keyHtml + '<br>' + '(' + parent.key() + ')';
         } else {
           return keyHtml;
         }
