@@ -9,6 +9,23 @@ var env = require('./vendor/electron_boilerplate/env_config');
 var devHelper = require('./vendor/electron_boilerplate/dev_helper');
 var windowStateKeeper = require('./vendor/electron_boilerplate/window_state');
 
+// Global Hotkey to activate Hotkey-Grid
+var os = require('os');
+var exec = require('child_process').exec;
+switch (os.platform()) {
+  case 'darwin':
+      break;
+  case 'linux':
+      break;
+  case 'win32':
+      exec('AutoHotkey.exe showhide.ahk', function(e, stdout, stderr) {
+        if (stderr) { console.log(stderr); }
+        console.log(stdout);
+      });
+      break;
+}
+
+
 // Keep a global reference of the window object, so it's not GC'ed.
 var mainWindow = null;
 
