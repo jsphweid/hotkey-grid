@@ -1,3 +1,5 @@
+; #Persistent
+#NoTrayIcon
 #if WinExist("Hotkey Grid")
 
 ; Makes sure that CAPS doesn't get stuck on
@@ -12,9 +14,4 @@ if (currentTitle == "Hotkey Grid") {
 if (currentTitle != "Hotkey Grid") {
 	WinActivate, Hotkey Grid
 }
-; if ((currentTitle == "Hotkey Grid") {
-; 	Send !{Esc}
-; }
 Return
-
-#If
