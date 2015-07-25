@@ -1,3 +1,4 @@
 export PATH=/Users/clayweidinger/.gvm/vertx/current/bin:/Users/clayweidinger/.gvm/springboot/current/bin:/Users/clayweidinger/.gvm/lazybones/current/bin:/Users/clayweidinger/.gvm/jbake/current/bin:/Users/clayweidinger/.gvm/groovyserv/current/bin:/Users/clayweidinger/.gvm/groovy/current/bin:/Users/clayweidinger/.gvm/griffon/current/bin:/Users/clayweidinger/.gvm/grails/current/bin:/Users/clayweidinger/.gvm/gradle/current/bin:/Users/clayweidinger/.gvm/glide/current/bin:/Users/clayweidinger/.gvm/gaiden/current/bin:/Users/clayweidinger/.gvm/crash/current/bin:/Users/clayweidinger/.gvm/asciidoctorj/current/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/clayweidinger/bin
 #source ~/.bash_profile
 electron --debug=5858 ~/clay/joseph
+#		do shell script "/Users/clayweidinger/clay/joseph/start.sh > /dev/null 2>&1 &"

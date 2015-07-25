@@ -136,7 +136,7 @@
     </ul>
 
     <!-- Tab panes -->
-    <div class="tab-content" data-bind="sortable: config.tabs">
+    <div class="tab-content" data-bind="foreach: config.tabs">
         <div role="tabpanel" class="tab-pane" data-bind="attr: {id: tabName}, css: { active: $root.selectedTab() === $data }">
             <div class="row" data-bind="foreach: rows">
                 <div class="" data-bind="foreach: cols">
@@ -238,13 +238,13 @@
                  <div class="row col-xs-12">&nbsp;</div>
               <div data-bind="with: selectedTab">
                 <div class="row col-xs-12 pad-bot">
-                   Active Tab Name
+                   Tab Name
                  </div>
                 <div class="row col-xs-12 pad-bot">
                       <input class='full-width' id='tabNameInput' data-bind="value:tabName, valueUpdate:'afterkeydown'"/>
                     </div>
                 <div class="row col-xs-12 pad-bot">
-                    <button class="btn btn-danger full-width" data-bind="click : $root.deleteTab">Delete Active Tab</button>
+                    <button class="btn btn-danger full-width" data-bind="click : $root.deleteTab">Delete Tab</button>
                 </div>
               </div>
           </div>
@@ -466,7 +466,7 @@ function HostsViewModel(config) {
     $(document).on('keydown', function() {
         if (document.activeElement.tagName === 'INPUT') return true;
         var keyStr = String.fromCharCode(event.which);
-        if (!isNaN(keyStr)) {
+        if (!isNaN(parseInt(keyStr,10))) {
             var index = parseInt(keyStr, 10) - 1;
             var tabs = vm.config.tabs();
             if (index === -1) {
