@@ -45,6 +45,7 @@ var finalize = function () {
     // Hotkey-grid's modification
     projectDir.copy('scripts', readyAppDir.path('resources/scripts'));
     projectDir.copy('AutoHotkey.exe', readyAppDir.path('resources/AutoHotkey.exe'));
+    projectDir.copy('showhide.ahk', readyAppDir.path('resources/showhide.ahk'));
 
     // Replace Electron icon for your own.
     var rcedit = require('rcedit');
