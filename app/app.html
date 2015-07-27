@@ -49,7 +49,7 @@
 			  if (os.platform() == 'win32') {
 			    return path.replace(new RegExp('/', 'g'), '\\');
 		      } else {
-			    return path.replace(new RegExp('\\', 'g'), '/');
+			    return path.replace(/\\/g, '/');
 			  }
 			}
 
@@ -71,11 +71,13 @@
             return isAbsolutePath(path) ? path : process.cwd() + osSlash + path;
           };
           var escapeSpaces = function(path) {
-			  if (os.platform() == 'win32') {
-			    return '"' + path + '"';
-		      } else {
-				return path.replace(new RegExp(' ', 'g'), '\\ ');
-			  }
+            path = correctSlashes(path);
+              return (path && path.indexOf(' ') !== -1) ? '"' + path + '"' : path;
+			      if (os.platform() == 'win32') {
+			        return '"' + path + '"';
+		        } else {
+				      return path.replace(new RegExp(' ', 'g'), '\\ ');
+			      }
           };
 
           // for opening files
@@ -163,22 +165,22 @@
         </div>
         <div class="full-width pad-bot">
           <button class="btn btn-success full-width " data-bind='click: $root.switchViewMode,
-                       html: $root.viewmode() ? "Hide Hotkeys Reminders" : "Show Hotkeys Reminders"'></button>
+                       html: $root.viewmode() ? "Hide Hotkeys" : "Show Hotkeys"'></button>
         </div>
         <div data-bind="visible: $root.editmode()">
           <div class="row col-xs-12">
             Default Executor
           </div>
           <div class="row col-xs-12">
-            <input id='tabNameInput' data-bind="value:config.defaultExecutor, valueUpdate:'afterkeydown'"/>`
+            <input id='tabNameInput' data-bind="value:config.defaultExecutor, valueUpdate:'afterkeydown'"/>
           </div>
 
           <div class="row col-xs-12">&nbsp;</div>
           <div class="row col-xs-12">
-            Default Script Editor
+            Default Editor
           </div>
           <div class="row col-xs-12">
-            <input id='tabNameInput' data-bind="value:config.defaultScriptEditor, valueUpdate:'afterkeydown'"/>`
+            <input id='tabNameInput' data-bind="value:config.defaultScriptEditor, valueUpdate:'afterkeydown'"/>
           </div>
         </div>
     </div>
@@ -223,10 +225,10 @@
         </div>
         <div class="row">
             <div class="col-xs-6">
-                <h4>Loose Keys</h4>
+                <h4 style='white-space:nowrap;'>Loose Keys</h4>
             </div>
             <div class="col-xs-6">
-                <button class="btn btn-primary full-width" data-bind="click : $root.addLooseKey">Make New Key</button>
+                <button class="btn btn-primary full-width" data-bind="click : $root.addLooseKey">Add Key</button>
             </div>
         </div>
     </div>
@@ -338,7 +340,7 @@ function HostsViewModel(config) {
     };
     // edit script
     this.editScript = function(key) {
-      var command = escapeSpaces(vm.config.defaultScriptEditor()) + ' ' + escapeSpaces(key.script());
+      var command = vm.config.defaultScriptEditor() + ' ' + escapeSpaces(key.script());
       exec(command, function(e, stdout, stderr) {
                         if (stderr) { alert(stderr); }
                         vm.commandOutput(stdout);
@@ -455,8 +457,7 @@ function HostsViewModel(config) {
     };
     this.executeKey = function(key) {
       var keyscript = key.script();
-      var command = escapeSpaces(key.executor()) + ' ' + escapeSpaces(key.script());
-
+      var command = key.executor() + ' ' + escapeSpaces(key.script());
       exec(command, function(e, stdout, stderr) {
         if (stderr) { alert(stderr); }
         vm.commandOutput(stdout);
@@ -465,6 +466,7 @@ function HostsViewModel(config) {
     // make keydown's activate tabs and keys
     $(document).on('keydown', function() {
         if (document.activeElement.tagName === 'INPUT') return true;
+        if (event.ctrlKey || event.metaKey || event.altKey) return true;
         var keyStr = String.fromCharCode(event.which);
         if (!isNaN(parseInt(keyStr,10))) {
             var index = parseInt(keyStr, 10) - 1;
@@ -476,7 +478,7 @@ function HostsViewModel(config) {
             } else if (tabs.length < MAX_TABS) {
                 vm.addTab();
             }
-        } else if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          } else {
             var selectedTab = vm.selectedTab();
             if (typeof selectedTab === 'undefined') return;
             for (var r = 0; r < keyboard.length; r++) {

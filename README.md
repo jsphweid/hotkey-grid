@@ -11,13 +11,35 @@ npm start         # starts app in debug mode, like `electron .`
 npm run release	  # makes installer for OS it is run on, see below for special windows packaging instructions
 ```
 
-## Special Packaging instructions for Windows
+## Windows - Special Packaging instructions
 As installer [NSIS](http://nsis.sourceforge.net/Main_Page) is used. You have to install it (version 3.0), and add NSIS folder to PATH in Environment Variables, so it is reachable to scripts in this project (path should look something like `C:/Program Files (x86)/NSIS`).
+
+## Mac - Special Global hotkey instructions
+Mac's way of binding a key combo to the showing of Hotkey Grid is through a service. Use the following steps to create one:
+http://www.makeuseof.com/tag/how-to-create-your-own-services-menus-mac/
+
+tell application "Hotkey Grid"
+	if it is running then
+		tell application "Finder"
+			set isHotkeyGridVisible to visible of process "Hotkey Grid"
+		end tell
+		if isHotkeyGridVisible is true then
+			tell application "Finder"
+				set visible of process "Hotkey Grid" to false
+			end tell
+		else
+			tell application "Hotkey Grid" to activate
+		end if
+	else
+		tell application "Hotkey Grid" to activate
+	end if
+end tell
 
 # Road Map
 
 ## Ready to work on 
 
+- fix Mac global hotkey instruction
 - package up electron as exe
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-distribution.md
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-packaging.md
