@@ -1,10 +1,18 @@
-; #Persistent
 #NoTrayIcon
+#SingleInstance force
+
+Sleep, 5000
+
 while (WinExist("Hotkey Grid")) {
 	Sleep, 1000
 }
 
-DetectHiddenWindows On  ; Allows a script's hidden main window to be detected.
-SetTitleMatchMode 2  ; Avoids the need to specify the full path of the file below.
-WinClose showhide.ahk  ; Update this to reflect the script's name (case sensitive).
-Exit
+If ProcessExist("AutoHotkey.exe") {
+	for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process  where name = 'Autohotkey.exe' ") 
+	process, close, % process.ProcessId
+}
+
+ProcessExist(Name){
+	Process,Exist,%Name%
+	return Errorlevel
+}

@@ -46,6 +46,7 @@ var finalize = function () {
     projectDir.copy('scripts', readyAppDir.path('resources/scripts'));
     projectDir.copy('AutoHotkey.exe', readyAppDir.path('resources/AutoHotkey.exe'));
     projectDir.copy('showhide.ahk', readyAppDir.path('resources/showhide.ahk'));
+    projectDir.copy('exitapp.ahk', readyAppDir.path('resources/exitapp.ahk'));
 
     // Replace Electron icon for your own.
     var rcedit = require('rcedit');

@@ -1,7 +1,8 @@
-; #Persistent
+#Persistent
 #NoTrayIcon
-#if WinExist("Hotkey Grid")
+#SingleInstance force
 
+#if WinExist("Hotkey Grid")
 ; Makes sure that CAPS doesn't get stuck on
 SetCapsLockState, AlwaysOff
 

@@ -270,9 +270,6 @@ var keyboard = [
     ['z', 'x', 'c', 'v', 'b', 'n']
 ];
 var MAX_TABS = 9;
-var DEFAULT_CONFIG_FILE_NAME = './default-config.hkg';
-var MY_CONFIG_FILE_NAME = './my-config.hkg';
-var CONFIG_FILE_NAME = './config.hkg';
 
 function fillInMissingKeysOnTab(tab) {
     for (var r = 0; r < 3; r++) {
@@ -500,53 +497,50 @@ function HostsViewModel(config) {
   ko.computed(function() {
     return ko.mapping.toJSON(vm.config);
   }).subscribe(function(configJson) {
-    fs.writeFile(CONFIG_FILE_NAME, configJson, function(err) {});
+    ipc.sendSync('writeConfig', configJson);
   });
 } // HostsViewModel
 
-var config;
-if (fs.existsSync(CONFIG_FILE_NAME)) {
-    var configJson = fs.readFileSync(CONFIG_FILE_NAME);
-    fs.writeFile(CONFIG_FILE_NAME + '.bak', configJson, function(err) {}); // save backup file
-    config = JSON.parse(configJson);
-} else {
-  config = {"defaultExecutor":"AutoHotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts\\win-ahk\\make msg box.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts\\mac\\new tab in chrome.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icon","icon":"scripts\\mac\\pic with space.png","executor":"open scripts/mac/pic\\ with\\ space.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[{"keyName":"ls","icon":"","executor":"AutoHotkey.exe","script":""}]},{"key":"w","keys":[{"keyName":"Zenity","icon":"","executor":"zenity --info --text=\"Calculation complete\"","script":""}]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
-    // move tabs around depending on which os you're using
-    var tabs = {};
-    tabs[config.tabs[0].tabName] = config.tabs[0];
-    tabs[config.tabs[1].tabName] = config.tabs[1];
-    tabs[config.tabs[2].tabName] = config.tabs[2];
-    switch (os.platform()) {
-      case 'darwin':
-          config.defaultExecutor = 'osascript';
-          config.tabs[0] = tabs.Mac;
-          config.tabs[1] = tabs.Windows;
-          config.tabs[2] = tabs.Linux;
-          break;
-      case 'linux':
-          config.tabs[0] = tabs.Linux;
-          config.tabs[1] = tabs.Mac;
-          config.tabs[2] = tabs.Windows;
-          break;
-      case 'win32':
-          config.defaultExecutor = 'AutoHotkey.exe';
-          config.tabs[0] = tabs.Windows;
-          config.tabs[1] = tabs.Mac;
-          config.tabs[2] = tabs.Linux;
-          break;
+function getDefaultConfig() {
+  var config = {"defaultExecutor":"AutoHotkey.exe","defaultScriptEditor":"sublime","looseKeys":[],"tabs":[{"tabName":"Windows","rows":[{"cols":[{"key":"q","keys":[{"keyName":"mak msg box","icon":"","executor":"autohotkey.exe","script":"scripts\\win-ahk\\make msg box.ahk"}]},{"key":"w","keys":[]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Mac","rows":[{"cols":[{"keys":[{"keyName":"New Chrome Tab","icon":"","executor":"osascript","script":"scripts\\mac\\new tab in chrome.ascript"}],"key":"q"},{"keys":[{"keyName":"Finder Home","icon":"","executor":"open ~","script":""}],"key":"w"},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[{"keyName":"Icon","icon":"scripts\\mac\\pic with space.png","executor":"open scripts/mac/pic\\ with\\ space.png","script":""}]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]},{"tabName":"Linux","rows":[{"cols":[{"key":"q","keys":[{"keyName":"ls","icon":"","executor":"AutoHotkey.exe","script":""}]},{"key":"w","keys":[{"keyName":"Zenity","icon":"","executor":"zenity --info --text=\"Calculation complete\"","script":""}]},{"key":"e","keys":[]},{"key":"r","keys":[]},{"key":"t","keys":[]},{"key":"y","keys":[]}]},{"cols":[{"key":"a","keys":[]},{"key":"s","keys":[]},{"key":"d","keys":[]},{"key":"f","keys":[]},{"key":"g","keys":[]},{"key":"h","keys":[]}]},{"cols":[{"key":"z","keys":[]},{"key":"x","keys":[]},{"key":"c","keys":[]},{"key":"v","keys":[]},{"key":"b","keys":[]},{"key":"n","keys":[]}]}]}]};
+  // move tabs around depending on which os you're using
+  var tabs = {};
+  tabs[config.tabs[0].tabName] = config.tabs[0];
+  tabs[config.tabs[1].tabName] = config.tabs[1];
+  tabs[config.tabs[2].tabName] = config.tabs[2];
+  switch (os.platform()) {
+    case 'darwin':
+        config.defaultExecutor = 'osascript';
+        config.tabs[0] = tabs.Mac;
+        config.tabs[1] = tabs.Windows;
+        config.tabs[2] = tabs.Linux;
+        break;
+    case 'linux':
+        config.tabs[0] = tabs.Linux;
+        config.tabs[1] = tabs.Mac;
+        config.tabs[2] = tabs.Windows;
+        break;
+    case 'win32':
+        config.defaultExecutor = 'AutoHotkey.exe';
+        config.tabs[0] = tabs.Windows;
+        config.tabs[1] = tabs.Mac;
+        config.tabs[2] = tabs.Linux;
+        break;
   }
+  return config;
 }
-var vm = new HostsViewModel(config);
-ko.bindingHandlers.sortable.beforeMove = vm.verifyMove;
-ko.applyBindings(vm);
 
+function startKnockout(config) {
+  var vm = new HostsViewModel(config);
+  ko.bindingHandlers.sortable.beforeMove = vm.verifyMove;
+  ko.applyBindings(vm);
+}
 
+var ipc = require('ipc');
+var CONFIG_FILE_NAME = 'config.hkg';
+var config = ipc.sendSync('readConfig', CONFIG_FILE_NAME);
+startKnockout(config ? config : getDefaultConfig());
 
-
-// var ipc = require('ipc');
-            // var updateOnlineStatus = function() {
-            //   ipc.send('online-status-changed', navigator.onLine ? 'online' : 'offline');
-            // };
 var remote = require('remote');
 var Menu = remote.require('menu');
 var template = [
