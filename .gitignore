@@ -12,9 +12,9 @@ Thumbs.db
 /releases/
 /tmp/
 
-# hotkey-grid app user specific config
-config.hkg
-config.hkg.bak
+# hotkey-grid app user specific config (for finale branch, leave these commented out?)
+# config.hkg
+# config.hkg.bak
 
 # dev dependencies
 node_modules
