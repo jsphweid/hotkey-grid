@@ -1,6 +1,6 @@
-#Include, %A_ScriptDir%\helpers\ahkCustomMacros.ahk
-#Include, %A_ScriptDir%\helpers\finaleMacros.ahk
-goToFinale()
+WinActivate, Finale 
+WinWaitActive, Finale
 ;=================
 
 WinMenuSelectItem,Finale,,Edit,Enharmonic Spelling,Favor Flats
+

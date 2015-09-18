@@ -30,10 +30,8 @@ ultimatum(functionToPerform)
 ; activate Finale
 goToFinale()
 {
-	Gui, Cancel
 	WinActivate, Finale 
 	WinWaitActive, Finale
-	Send {esc}
 }
 
 waitForCursorToGoFromHourGlassToArrow()
