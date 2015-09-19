@@ -721,6 +721,16 @@ showHideRestsInEmptyMeasures()
 
 makeHollywoodMeasureNumbers()
 {
+	tryIt := runJWLuaScript("measure-numbers_LA-style.lua", "Measure Numbers - LA Style")
+	if (tryIt == 1)
+	{
+		MsgBox, Because you're not using JW Lua and my JW Lua scripts, this is going to take a lot longer...
+		makeHollywoodMeasureNumbersOld()
+	}
+}
+
+makeHollywoodMeasureNumbersOld()
+{
 	switchToEVPUs()
 	goToEditMeasureNumberRegions()
 	Send !d!d!d!d!d!a ;deletes up to 5 existing entries and then adds a new one
@@ -767,6 +777,16 @@ makeHollywoodMeasureNumbers()
 }
 
 makeConventionalMeasureNumbers()
+{
+	tryIt := runJWLuaScript("measure-numbers_LA-style.lua", "Measure Numbers - Use Default")
+	if (tryIt == 1)
+	{
+		MsgBox, Because you're not using JW Lua and my JW Lua scripts, this is going to take a lot longer...
+		makeConventionalMeasureNumbersOld()
+	}
+}
+
+makeConventionalMeasureNumbersOld()
 {
 	switchToEVPUs()
 	goToEditMeasureNumberRegions()
@@ -1155,29 +1175,6 @@ checkJWCautionaryAccidentals()
 	WinActivate, JW Accidentals
 	;fix
 	ControlClick, Button3, JW Accidentals,,,, NA
-	; waitForCursorToGoFromHourGlassToArrow()
-	; WinWaitNotActive, JW Accidentals,,2
-	; if ErrorLevel
-	; {
-	; 	SplashTextOn, 400,80, , Added cautionary accidentals...
-	; 	Sleep, 1500
-	; 	SplashTextOff
-	; }
-	; Else
-	; {
-	; 	Send, {Enter}
-	; 	SplashTextOn, 400,80, , No cautionary accidentals were needed...
-	; 	Sleep, 1500
-	; 	SplashTextOff
-	; }
-	
-	; IfWinExist, JW Accidentals
-	; WinClose, JW Accidentals
-	; ControlClick, Button4, JW Accidentals,,,, NA
-	; nothingSelected()
-	; IfWinExist, JW Accidentals
-	; 	WinClose, JW Accidentals
-
 	JWAccidentalEnding:
 }
 

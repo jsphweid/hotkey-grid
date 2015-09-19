@@ -124,7 +124,15 @@
       .pad-bot {
         padding-bottom:8px;
       }
+      .btn {
+        white-space: normal;
+      }
     </style>
+
+    <!-- My attempt at context menus... -->
+    <menu type="context" id="menu">...</menu>
+
+
 <div classs="row" role="tabpanel">
   <div class="col-xs-12">
     <ul class="nav nav-tabs" id='numberedTabs' role="tablist" data-bind="sortable: config.tabs">
@@ -362,6 +370,7 @@ function HostsViewModel(config) {
         var tabs = vm.config.tabs();
         if (tabs.length === 1) { alert('You cannot delete your only tab.'); return }
         for (var t = 0; t < tabs.length; t++) {
+          // put confirm here?
             if (tabs[t] == selectedTab) {
                 vm.config.tabs.splice(t,1);
                 if (t === 0) {
