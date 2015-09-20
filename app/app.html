@@ -11,6 +11,16 @@
         <script>
             requirejs(['app'], function (app) {});
         </script-->
+
+        <!-- MY ATTEMPT AT ADDING CONTEXT MENUS -->
+        <!-- <script src="vendor/jquery/jquery-1.8.2.min.js"></script>
+        <script src="vendor/jquery/jquery.ui.position.min.js"></script>
+        <link href="vendor/jquery/jquery.contextMenu.css" rel="stylesheet" type="text/css" />
+        
+        <script src="vendor/spectrum/spectrum.js"></script> //## where can I add something like this?!?!?? jquery isn't defined up here but is it anywhere because of require()?
+
+        -->
+
         <title>Hotkey Grid</title>
         <script>
           $ = window.$ = window.jQuery = require('jquery');
@@ -83,9 +93,72 @@
           // for opening files
           var remote = require('remote'); 
           var dialog = remote.require('dialog'); 
+
+        // context menus // can't get all loaded....
+        // $(function(){
+        //     $.contextMenu({
+        //         selector: '.context-menu-one', 
+        //         callback: function(key, options) {
+        //             var m = "clicked: " + key;
+        //             window.console && console.log(m) || alert(m); 
+        //         },
+        //         items: {
+        //             "edit": {name: "Edit", icon: "edit"},
+        //             "cut": {name: "Cut", icon: "cut"},
+        //            copy: {name: "Copy", icon: "copy"},
+        //             "paste": {name: "Paste", icon: "paste"},
+        //             "delete": {name: "Delete", icon: "delete"},
+        //             "sep1": "---------",
+        //             "quit": {name: "Quit", icon: function(){
+        //                 return 'icon icon-quit';
+        //             }}
+        //         }
+        //     });
+            
+        //     $('.context-menu-one').on('click', function(e){
+        //         console.log('clicked', this);
+        //     })
+        // });
           //http://www.mylifeforthecode.com/getting-started-with-standard-dialogs-in-electron/
+        
+
+          // Adding color picker
+          function printColor(color) {
+             var text = "You chose... " + color.toHexString();    
+             $(".label").text(text);
+              
+          }
+
+          $("#showPaletteOnly").spectrum({
+              color: "rgb(244, 204, 204)",    
+              showPaletteOnly: true,
+              change: function(color) {
+                  printColor(color);
+              },
+              palette: [
+                  ["rgb(0, 0, 0)", "rgb(67, 67, 67)", "rgb(102, 102, 102)",
+                  "rgb(204, 204, 204)", "rgb(217, 217, 217)","rgb(255, 255, 255)"],
+                  ["rgb(152, 0, 0)", "rgb(255, 0, 0)", "rgb(255, 153, 0)", "rgb(255, 255, 0)", "rgb(0, 255, 0)",
+                  "rgb(0, 255, 255)", "rgb(74, 134, 232)", "rgb(0, 0, 255)", "rgb(153, 0, 255)", "rgb(255, 0, 255)"], 
+                  ["rgb(230, 184, 175)", "rgb(244, 204, 204)", "rgb(252, 229, 205)", "rgb(255, 242, 204)", "rgb(217, 234, 211)", 
+                  "rgb(208, 224, 227)", "rgb(201, 218, 248)", "rgb(207, 226, 243)", "rgb(217, 210, 233)", "rgb(234, 209, 220)", 
+                  "rgb(221, 126, 107)", "rgb(234, 153, 153)", "rgb(249, 203, 156)", "rgb(255, 229, 153)", "rgb(182, 215, 168)", 
+                  "rgb(162, 196, 201)", "rgb(164, 194, 244)", "rgb(159, 197, 232)", "rgb(180, 167, 214)", "rgb(213, 166, 189)", 
+                  "rgb(204, 65, 37)", "rgb(224, 102, 102)", "rgb(246, 178, 107)", "rgb(255, 217, 102)", "rgb(147, 196, 125)", 
+                  "rgb(118, 165, 175)", "rgb(109, 158, 235)", "rgb(111, 168, 220)", "rgb(142, 124, 195)", "rgb(194, 123, 160)",
+                  "rgb(166, 28, 0)", "rgb(204, 0, 0)", "rgb(230, 145, 56)", "rgb(241, 194, 50)", "rgb(106, 168, 79)",
+                  "rgb(69, 129, 142)", "rgb(60, 120, 216)", "rgb(61, 133, 198)", "rgb(103, 78, 167)", "rgb(166, 77, 121)",
+                  "rgb(91, 15, 0)", "rgb(102, 0, 0)", "rgb(120, 63, 4)", "rgb(127, 96, 0)", "rgb(39, 78, 19)", 
+                  "rgb(12, 52, 61)", "rgb(28, 69, 135)", "rgb(7, 55, 99)", "rgb(32, 18, 77)", "rgb(76, 17, 48)"]
+              ]
+          });
+
+
+
+
         </script>
          <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
+         <!-- <link rel="stylesheet" href="./vendor/spectrum/spectrum.css"> -->
          <link rel="stylesheet" href="./node_modules/jquery-ui/themes/smoothness/jquery-ui.css">
     </head>
     <body class='fluid-container' style="margin:15px;">
@@ -124,7 +197,28 @@
       .pad-bot {
         padding-bottom:8px;
       }
+      .btn {
+        white-space: normal;
+      }
+
+      .sp-palette {
+        max-width: 200px;
+      }
+
+      .label {
+        background: #444;
+        padding:8px;    
+        border-radius: 4px;
+        color: #eee;
+        margin-top: 10px;
+        display:inline-block;
+      }
     </style>
+
+    <!-- My attempt at context menus... -->
+    <menu type="context" id="menu">...</menu>
+
+
 <div classs="row" role="tabpanel">
   <div class="col-xs-12">
     <ul class="nav nav-tabs" id='numberedTabs' role="tablist" data-bind="sortable: config.tabs">
@@ -213,6 +307,13 @@
               <div class="col-xs-offset-3 col-xs-6">
                 <button class="btn btn-danger " data-bind='click: $root.deleteKey'>Delete Key</button>
               </div>
+          </div>
+          <!-- Add color picker pallette -->
+          <div class="row pad-botss">
+            <h2>Palette Only</h2>
+            <input type='text' id="showPaletteOnly"/>
+            <br />
+            <span class='label'>Choose a color</span>
           </div>
         </div>
     </div>
@@ -362,6 +463,7 @@ function HostsViewModel(config) {
         var tabs = vm.config.tabs();
         if (tabs.length === 1) { alert('You cannot delete your only tab.'); return }
         for (var t = 0; t < tabs.length; t++) {
+          // put confirm here?
             if (tabs[t] == selectedTab) {
                 vm.config.tabs.splice(t,1);
                 if (t === 0) {
