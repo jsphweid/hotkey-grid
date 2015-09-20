@@ -1,5 +1,6 @@
-#NoTrayIcon
+; #NoTrayIcon
 #SingleInstance force
+#Persistent
 
 Sleep, 5000
 

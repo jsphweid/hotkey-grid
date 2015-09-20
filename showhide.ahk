@@ -1,5 +1,5 @@
 #Persistent
-#NoTrayIcon
+; #NoTrayIcon
 #SingleInstance force
 
 ; Makes sure that CAPS doesn't get stuck on
