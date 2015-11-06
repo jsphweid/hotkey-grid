@@ -21,14 +21,15 @@ To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F
 
 ## Ready to work on 
 
-- load up layout and export layout
+- load up layout and export layout (config.hkg, just copy it from a selected file, don't use it)
+- 
 - package up electron as exe
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-distribution.md
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-packaging.md
   - https://github.com/maxogden/electron-packager
   - https://github.com/szwacz/electron-boilerplate
   - exec('open /usr/local/bin/sublime', function(error, stdout, stderr) { console.log(error); console.log(stdout); console.log(stderr); });
-- zip up electron + finale for finale people
+- windows version crashes after a while...?
 
 - menu items on Windows version still results in error
 - confirmation prompts required when deleting a tab or a button
@@ -38,13 +39,11 @@ To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F
 - button colors
 
 ## Lua and Finale
-
-- installation of lua scripts will be option.  They lua scripts will be in my zip but they'll have to manually add them. the basic installation will install lua to a folder named "joseph's plug-ins" or something.  It can't be empty.  The user can then select which of my Lua files they want to add to that menu item later.
+-- a custom folder can be installed externally that is ~/.finale-macros. Everything involving finale scripts (for mac, win, lua, and maybe my default config file can live in there)
 
 ## Someday/Maybe
 
 - send data - 
-- import config (tabs and keys)
   - possibly export just certain tabs / keys
   - possibly import just certain tabs / keys
   - worry about too many loose keys (... to see more)
