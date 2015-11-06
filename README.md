@@ -21,7 +21,6 @@ To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F
 
 ## Ready to work on 
 
-- fix Mac global hotkey instruction
 - package up electron as exe
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-distribution.md
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-packaging.md
@@ -34,6 +33,8 @@ To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F
 - confirmation prompts required when deleting a tab or a button
 - sublime as default editor doesn't work (default should probably be notepad)
 - windows, linux, mac tabs all not necessary on the windows version...
+- config should remember use mode / hide hotkeys...
+- button colors
 
 ## Lua and Finale
 
