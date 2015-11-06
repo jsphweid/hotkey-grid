@@ -15,25 +15,7 @@ npm run release	  # makes installer for OS it is run on, see below for special w
 As installer [NSIS](http://nsis.sourceforge.net/Main_Page) is used. You have to install it (version 3.0), and add NSIS folder to PATH in Environment Variables, so it is reachable to scripts in this project (path should look something like `C:/Program Files (x86)/NSIS`).
 
 ## Mac - Special Global hotkey instructions
-Mac's way of binding a key combo to the showing of Hotkey Grid is through a service. Use the following steps to create one:
-http://www.makeuseof.com/tag/how-to-create-your-own-services-menus-mac/
-
-tell application "Hotkey Grid"
-	if it is running then
-		tell application "Finder"
-			set isHotkeyGridVisible to visible of process "Hotkey Grid"
-		end tell
-		if isHotkeyGridVisible is true then
-			tell application "Finder"
-				set visible of process "Hotkey Grid" to false
-			end tell
-		else
-			tell application "Hotkey Grid" to activate
-		end if
-	else
-		tell application "Hotkey Grid" to activate
-	end if
-end tell
+To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F13, which doesn't really exist on a typical keyboard. Do not use Automater or Services as the bridge between the hotkey and the script because there is too much overhead and it is not reactive enough. Instead use FastScripts.
 
 # Road Map
 
