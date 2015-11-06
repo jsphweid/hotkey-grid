@@ -21,6 +21,7 @@ To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F
 
 ## Ready to work on 
 
+- load up layout and export layout
 - package up electron as exe
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-distribution.md
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-packaging.md
