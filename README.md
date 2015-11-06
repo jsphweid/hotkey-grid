@@ -22,6 +22,7 @@ To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F
 ## Ready to work on 
 
 - load up layout and export layout (config.hkg, just copy it from a selected file, don't use it)
+- a better way to switch back to first tab every time (faster, maybe as soon as any button is pressed?)
 - 
 - package up electron as exe
   - https://github.com/atom/electron/blob/master/docs/tutorial/application-distribution.md
