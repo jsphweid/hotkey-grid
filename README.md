@@ -78,6 +78,9 @@ process.cwd()
 __dirname
 "/Users/clayweidinger/clay/git/hotkey-grid/build"
 
+# Finale-Mac configuration change before release
+Copy contents of file at ~/Library/Application Support/Hotkey Grid Dev/config.hkg to "var config = HERE;" within hotkey-grid/app/app.html
+
 # Thanks to
 Electron
 Electron Boilerplate
