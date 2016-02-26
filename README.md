@@ -25,7 +25,11 @@ This is a little complicated but it is mostly a lot of SIMPLE steps.
 - Download and install Seil, the tool that will rebind CAPS LOCK. https://pqrs.org/osx/karabiner/seil.html.en
 	- Type "seil" in Spotlight and hit enter to bring up its configuration.
 	- Expand the "Change the caps lock key"
-	-
+	- Change the keycode to "105" (which is F13)
+  - Follow their instructions in the colored box to disable normal CAPS functionality.
+- Download and install FastScripts
+  - Download my toggle script first in the Terminal: 'curl -s https://raw.githubusercontent.com/jsphweid/hotkey-grid/finale-mac/scripts/osxCapsToggle/installToggle | bash'
+
 
 
 
