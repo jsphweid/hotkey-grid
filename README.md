@@ -21,21 +21,23 @@ To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F
 
 This is a little complicated but it is mostly a lot of SIMPLE steps.
 
-- Download and install Hotkey Grid as you would any other application. _________
-- Download and install Seil, the tool that will rebind CAPS LOCK. https://pqrs.org/osx/karabiner/seil.html.en
+- [Download and install Hotkey Grid](https://github.com/jsphweid/hotkey-grid/raw/finale-mac/hotkey-grid_0.1.0.dmg) as you would any other application. _________
+- [Download and install Seil](https://pqrs.org/osx/karabiner/seil.html.en), the tool that will rebind CAPS LOCK.
 	- Type "seil" in Spotlight and hit enter to bring up its configuration.
 	- Expand the "Change the caps lock key"
 	- Change the keycode to "105" (which is F13)
   - Follow their instructions in the colored box to disable normal CAPS functionality.
-- Download and install FastScripts
-  - Download my toggle script first in the Terminal: 'curl -s https://raw.githubusercontent.com/jsphweid/hotkey-grid/finale-mac/scripts/osxCapsToggle/installToggle | bash'
+- [Download my toggle script here](https://github.com/jsphweid/hotkey-grid/raw/finale-mac/scripts/osxCapsToggle/toggleGridAsScript.scpt) and place it in /Library/Scripts (it requires special permission)
+- [Download and install FastScripts](https://red-sweater.com/fastscripts/) You don't need the paid version. This program makes the CAPS toggle work almost instantaneously. Move the zip to /Applications then unzip and run.
+  - Click on the FastScripts icon on Mac's top menu bar and go to FastSripts > Preferences...
+  - Go to the "Script Shortcuts" tab. Expand /Library/Scripts. Find toggleGridAsScript and change the shortcut by hitting CAPS. If you've done everything up to this point, it will ask you to confim the assignment and then F13 will appear as the assignment.
 
-
-
+Holy crap! We're done. Hit CAPS and you're off to the races!
 
 
 
 To update my most current scripts even after you've installed Hotkey Grid... open the terminal and run this:
+
 'curl -s https://raw.githubusercontent.com/jsphweid/finale-macros/master/update | bash'
 
 # Road Map
