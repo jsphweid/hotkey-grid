@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "*** downloading toggle script and place it in correct folder"
+cd "/Library/Scripts" && curl -LO https://github.com/jsphweid/hotkey-grid/raw/finale-mac/scripts/osxCapsToggle/installToggle
+echo "end"

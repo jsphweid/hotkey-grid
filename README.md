@@ -21,6 +21,14 @@ To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F
 
 This is a little complicated but it is mostly a lot of SIMPLE steps.
 
+- Download and install Hotkey Grid as you would any other application. _________
+- Download and install Seil, the tool that will rebind CAPS LOCK. https://pqrs.org/osx/karabiner/seil.html.en
+	- Type "seil" in Spotlight and hit enter to bring up its configuration.
+	- Expand the "Change the caps lock key"
+	-
+
+
+
 
 
 To update my most current scripts even after you've installed Hotkey Grid... open the terminal and run this:
