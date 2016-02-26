@@ -17,6 +17,15 @@ As installer [NSIS](http://nsis.sourceforge.net/Main_Page) is used. You have to 
 ## Mac - Special Global hotkey instructions
 To take control of CAPS on MAC, Use Seil. Redirect it to keycode 105, which is F13, which doesn't really exist on a typical keyboard. Do not use Automater or Services as the bridge between the hotkey and the script because there is too much overhead and it is not reactive enough. Instead use FastScripts.
 
+# Mac OSX Installation Instructions
+
+This is a little complicated but it is mostly a lot of SIMPLE steps.
+
+
+
+To update my most current scripts even after you've installed Hotkey Grid... open the terminal and run this:
+'curl -s https://raw.githubusercontent.com/jsphweid/finale-macros/master/update | bash'
+
 # Road Map
 
 ## Ready to work on 

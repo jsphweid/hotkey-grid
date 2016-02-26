@@ -21,8 +21,16 @@ function transpose(interval, preserve)
 	      end
 	   end
 	end
+	refreshAccidentals()
 end
 
+function refreshAccidentals()
+	for e in eachentrysaved(finenv.Region()) do
+		if e:IsNote() then
+	    	e.CheckAccidentals = true   -- Assure proper accidental refresh
+   		end
+	end
+end
 
 -- Show user dialog box
 local dialog = finenv.UserValueInput()
