@@ -22,6 +22,7 @@ hotkey-grid is toggled with CAPS. This is difficult to do on a Mac but I think I
 - [Download and install FastScripts](https://red-sweater.com/fastscripts/) You don't need the paid version. Move the zip to /Applications then unzip and run.
 	- Click on the FastScripts icon on Mac's top menu bar and go to FastSripts > Preferences...
 	- Go to the "Script Shortcuts" tab. Expand /Library/Scripts. Find toggleGridAsScript and change the shortcut by hitting CAPS. If you've done everything up to this point, it will ask you to confim the assignment and then F13 will appear as the assignment.
+- The last thing you'll have to do is grant Hotkey Grid / FastScripts "Assistive Access." Go to Mac's System Preferences -> Security and Privacy -> Privacy -> Accessibility -> unlock then check both Hotkey Grid and FastScripts. 
 
 Holy crap! We're done. Hit CAPS and you're off to the races!
 
